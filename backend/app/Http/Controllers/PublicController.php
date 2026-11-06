@@ -4,34 +4,65 @@ namespace App\Http\Controllers;
 
 use App\Models\Article;
 use App\Models\Category;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Inertia\Inertia;
 
 class PublicController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $heroArticle = $this->publishedArticles()
+        $search = trim($request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+        ])['q'] ?? '');
+        $searchArticles = fn () => $this->publishedArticles()
+            ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search) {
+                $query->where('title', 'like', "%{$search}%")
+                    ->orWhere('excerpt', 'like', "%{$search}%");
+            }));
+
+        $heroArticles = $searchArticles()
             ->with(['category', 'author'])
             ->orderByDesc('is_featured')
             ->latest()
-            ->first();
+            ->take(3)
+            ->get();
+        $heroArticleIds = $heroArticles->modelKeys();
 
-        $latestArticles = $this->publishedArticles()
+        $latestArticles = $searchArticles()
             ->with('category')
-            ->when($heroArticle, fn ($query) => $query->whereKeyNot($heroArticle->getKey()))
+            ->when($search === '' && $heroArticleIds !== [], fn ($query) => $query->whereNotIn('id', $heroArticleIds))
             ->latest()
             ->take(6)
             ->get();
 
-        $breakingArticles = $this->publishedArticles()
+        $relatedArticles = $heroArticleIds === []
+            ? collect()
+            : $searchArticles()
+                ->with('category')
+                ->where('category_id', $heroArticles->first()->category_id)
+                ->whereNotIn('id', $heroArticleIds)
+                ->orderByDesc('views_count')
+                ->latest()
+                ->take(3)
+                ->get();
+
+        if ($relatedArticles->count() < 3) {
+            $relatedArticles = $relatedArticles->concat(
+                $searchArticles()
+                    ->with('category')
+                    ->when($heroArticleIds !== [], fn ($query) => $query->whereNotIn('id', $heroArticleIds))
+                    ->whereNotIn('id', $relatedArticles->pluck('id')->all())
+                    ->orderByDesc('views_count')
+                    ->latest()
+                    ->take(3 - $relatedArticles->count())
+                    ->get()
+            );
+        }
+
+        $breakingArticles = $searchArticles()
             ->with('category')
             ->where('is_breaking', true)
-            ->latest()
-            ->take(5)
-            ->get();
-
-        $popularArticles = $this->publishedArticles()
-            ->with('category')
-            ->orderByDesc('views_count')
             ->latest()
             ->take(5)
             ->get();
@@ -41,13 +72,23 @@ class PublicController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('public.home', compact(
-            'heroArticle',
-            'latestArticles',
-            'breakingArticles',
-            'popularArticles',
-            'categories'
-        ));
+        return Inertia::render('Welcome', [
+            'heroArticles' => $heroArticles->map(fn (Article $article) => $this->articleForFrontend($article)),
+            'relatedArticles' => $relatedArticles->map(fn (Article $article) => $this->articleForFrontend($article)),
+            'latestArticles' => $latestArticles->map(fn (Article $article) => $this->articleForFrontend($article)),
+            'breakingArticles' => $breakingArticles->map(fn (Article $article) => $this->articleForFrontend($article)),
+            'categories' => $categories->map(fn (Category $category) => [
+                'id' => $category->id,
+                'name' => $category->name,
+                'url' => route('category.show', $category->slug),
+            ]),
+            'search' => $search,
+            'csrfToken' => csrf_token(),
+            'homeUrl' => route('home'),
+            'newsletterUrl' => route('newsletter.subscribe'),
+            'adminUrl' => route('dashboard'),
+            'currentDate' => now()->locale('fr')->translatedFormat('l d F Y'),
+        ]);
     }
 
     public function show($slug)
@@ -111,5 +152,21 @@ class PublicController extends Controller
                 $query->whereNull('published_at')
                     ->orWhere('published_at', '<=', now());
             });
+    }
+
+    private function articleForFrontend(Article $article): array
+    {
+        return [
+            'id' => $article->id,
+            'title' => $article->title,
+            'slug' => $article->slug,
+            'excerpt' => $article->excerpt ?: Str::limit(strip_tags($article->content), 180),
+            'image' => $article->featured_image ? asset('storage/'.$article->featured_image) : null,
+            'category' => $article->category?->name ?? 'Actualité',
+            'categoryUrl' => $article->category ? route('category.show', $article->category->slug) : null,
+            'url' => route('article.show', $article->slug),
+            'publishedAt' => ($article->published_at ?? $article->created_at)->toIso8601String(),
+            'views' => (int) $article->views_count,
+        ];
     }
 }

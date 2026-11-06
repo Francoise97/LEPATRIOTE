@@ -6,6 +6,7 @@ use App\Models\Article;
 use App\Models\Category;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class PublicHomePageTest extends TestCase
@@ -44,16 +45,25 @@ class PublicHomePageTest extends TestCase
 
         $this->get('/')
             ->assertOk()
-            ->assertSee('Un article à la une')
-            ->assertSee('Un résumé de l’article.')
-            ->assertSee('Politique')
-            ->assertDontSee('Un article en brouillon');
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Welcome')
+                ->has('heroArticles', 1)
+                ->where('heroArticles.0.title', 'Un article à la une')
+                ->where('heroArticles.0.excerpt', 'Un résumé de l’article.')
+                ->has('categories', 1)
+                ->where('categories.0.name', 'Politique')
+                ->missing('heroArticles.1')
+            );
     }
 
     public function test_home_page_shows_an_empty_state_when_there_are_no_published_articles(): void
     {
         $this->get('/')
             ->assertOk()
-            ->assertSee('Aucun article n');
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Welcome')
+                ->has('heroArticles', 0)
+                ->has('latestArticles', 0)
+            );
     }
 }

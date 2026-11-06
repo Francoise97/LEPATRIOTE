@@ -1,6 +1,5 @@
 import React from 'react';
-import { useForm, Head } from '@inertiajs/react';
-import { Inertia } from '@inertiajs/inertia';
+import { Head, router, useForm } from '@inertiajs/react';
 
 export default function Create({ categories, tags }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -151,7 +150,7 @@ export default function Create({ categories, tags }) {
                     </button>
                     <button
                         type="button"
-                        onClick={() => Inertia.visit('/admin/articles')}
+                        onClick={() => router.visit('/admin/articles')}
                         style={{ backgroundColor: '#6b7280', color: 'white', padding: '12px 24px', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
                     >
                         Annuler

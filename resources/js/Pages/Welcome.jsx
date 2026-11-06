@@ -125,7 +125,8 @@ export default function Welcome({
     heroArticles = [],
     relatedArticles = [],
     latestArticles = [],
-    breakingArticles = [],
+    breakingItems = [],
+    breakingLabel = 'LE FIL INFO',
     categories = [],
     countries = [],
     selectedCountry = null,
@@ -200,17 +201,22 @@ export default function Welcome({
                     </div>
                 </nav>
 
-                {breakingArticles.length > 0 && (
-                    <section className="breaking" aria-label="Dernières nouvelles">
+                {breakingItems.length > 0 && (
+                    <section className="breaking" aria-label={breakingLabel}>
                         <div className="site-container breaking-inner">
-                            <span className="breaking-label"><span aria-hidden="true" /> À LA UNE</span>
-                            <div className="breaking-track">
-                                {breakingArticles.map((article) => (
-                                    <a key={article.id} href={article.url}>{article.title}</a>
-                                ))}
-                                {breakingArticles.map((article) => (
-                                    <a key={`repeat-${article.id}`} href={article.url} aria-hidden="true" tabIndex={-1}>{article.title}</a>
-                                ))}
+                            <span className="breaking-label">{breakingLabel}</span>
+                            <div className="breaking-window">
+                                <div className="breaking-track">
+                                    {[0, 1].map((copy) => (
+                                        <div className="breaking-group" key={copy} aria-hidden={copy === 1}>
+                                            {breakingItems.map((item) => item.url ? (
+                                                <a key={item.id} href={item.url} tabIndex={copy === 1 ? -1 : undefined}>{item.text}</a>
+                                            ) : (
+                                                <span key={item.id} tabIndex={copy === 1 ? -1 : undefined}>{item.text}</span>
+                                            ))}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </section>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Advertisement;
+use App\Models\BreakingNews;
 use App\Models\Article;
 use App\Models\ArticleLike;
 use App\Models\Category;
@@ -68,20 +69,12 @@ class PublicController extends Controller
             );
         }
 
-        $breakingArticles = $searchArticles()
-            ->with(['category', 'country'])
-            ->where('is_breaking', true)
-            ->latest()
-            ->take(5)
-            ->get();
-
-        if ($breakingArticles->isEmpty()) {
-            $breakingArticles = $searchArticles()
-                ->with(['category', 'country'])
-                ->latest()
-                ->take(5)
-                ->get();
-        }
+        $breakingItems = BreakingNews::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderByDesc('id')
+            ->take(12)
+            ->get(['id', 'text', 'url']);
 
         $categories = Category::active()
             ->orderBy('order')
@@ -112,7 +105,8 @@ class PublicController extends Controller
             'heroArticles' => $heroArticles->map(fn (Article $article) => $this->articleForFrontend($article, $likedArticleIds)),
             'relatedArticles' => $relatedArticles->map(fn (Article $article) => $this->articleForFrontend($article, $likedArticleIds)),
             'latestArticles' => $latestArticles->map(fn (Article $article) => $this->articleForFrontend($article, $likedArticleIds)),
-            'breakingArticles' => $breakingArticles->map(fn (Article $article) => $this->articleForFrontend($article, $likedArticleIds)),
+            'breakingItems' => $breakingItems,
+            'breakingLabel' => Setting::get('breaking_news_label', 'LE FIL INFO'),
             'categories' => $categories->map(fn (Category $category) => [
                 'id' => $category->id,
                 'name' => $category->name,

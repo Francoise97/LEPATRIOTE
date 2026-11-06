@@ -76,7 +76,7 @@ Créer d’abord un compte de connexion, puis lui accorder le rôle administrate
 php artisan admin:promote admin@example.com
 ```
 
-L’accès à `/admin` est réservé aux comptes éditeur et administrateur. L’administration permet de modifier le logo, les couleurs et la typographie du slogan, de gérer les publicités et les sources RSS, et d’éditer les articles avec leur pays et leur rubrique. Une source RSS doit être vérifiée et active avant import ; ses articles sont créés en brouillon pour contrôle éditorial. Les articles marqués « Afficher dans le bandeau défilant » apparaissent dans le bandeau de la page d’accueil. Les mentions J’aime sont limitées à une réaction réversible par session et par article.
+L’accès à `/admin` est réservé aux comptes éditeur et administrateur. L’administration permet de modifier le logo, les couleurs et la typographie du slogan, de gérer les publicités et les sources RSS, et d’éditer les articles avec leur pays et leur rubrique. Une source RSS doit être vérifiée et active avant import ; ses articles sont créés en brouillon pour contrôle éditorial. La section « Fil info » permet aux administrateurs de modifier le libellé du badge, d’ajouter, modifier, activer, ordonner ou supprimer les messages du bandeau de la page d’accueil. Chaque message peut contenir un lien facultatif. Les mentions J’aime sont limitées à une réaction réversible par session et par article.
 
 Les visuels envoyés par l’administration sont stockés sur le disque public Laravel. Pour les servir, créer le lien de stockage une fois :
 

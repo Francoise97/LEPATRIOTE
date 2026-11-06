@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Advertisement;
+use App\Models\BreakingNews;
 use App\Models\Country;
 use App\Models\NewsSource;
 use App\Models\Setting;
@@ -35,7 +36,56 @@ class AdminSiteFeaturesTest extends TestCase
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('siteAppearance.slogan', 'Une information utile')
                 ->where('siteAppearance.primaryColor', '#123456')
+                ->where('breakingLabel', 'LE FIL INFO')
             );
+    }
+
+    public function test_administrators_manage_ordered_active_breaking_news(): void
+    {
+        $administrator = User::factory()->create(['role' => 'admin']);
+        $first = BreakingNews::create([
+            'text' => 'Premier message',
+            'sort_order' => 2,
+            'is_active' => true,
+        ]);
+        BreakingNews::create([
+            'text' => 'Message désactivé',
+            'sort_order' => 1,
+            'is_active' => false,
+        ]);
+
+        $this->actingAs($administrator)
+            ->get(route('admin.breaking-news.index'))
+            ->assertOk()
+            ->assertSee('Premier message')
+            ->assertSee('Message désactivé');
+
+        $this->put(route('admin.breaking-news.update', $first), [
+            'text' => 'Message modifié',
+            'url' => 'https://example.com/news',
+            'sort_order' => 1,
+            'is_active' => '1',
+        ])->assertRedirect(route('admin.breaking-news.index'));
+
+        $this->put(route('admin.breaking-news.label'), ['label' => 'ACTUALITÉ'])
+            ->assertRedirect(route('admin.breaking-news.index'));
+
+        $this->get('/')
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('breakingLabel', 'ACTUALITÉ')
+                ->has('breakingItems', 1)
+                ->where('breakingItems.0.text', 'Message modifié')
+                ->where('breakingItems.0.url', 'https://example.com/news')
+            );
+    }
+
+    public function test_non_administrators_cannot_manage_breaking_news(): void
+    {
+        $author = User::factory()->create(['role' => 'author']);
+
+        $this->actingAs($author)
+            ->get(route('admin.breaking-news.index'))
+            ->assertForbidden();
     }
 
     public function test_non_administrators_cannot_access_site_settings(): void
@@ -83,6 +133,10 @@ class AdminSiteFeaturesTest extends TestCase
         $this->get(route('admin.advertisements.create'))
             ->assertOk()
             ->assertSee('Lien de destination');
+
+        $this->get(route('admin.breaking-news.index'))
+            ->assertOk()
+            ->assertSee('Texte du badge fixe');
     }
 
     public function test_news_source_import_is_blocked_until_the_source_is_verified(): void

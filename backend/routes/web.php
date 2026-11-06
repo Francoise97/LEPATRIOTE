@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdvertisementController;
 use App\Http\Controllers\Admin\ArticleController;
+use App\Http\Controllers\Admin\BreakingNewsController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\NewsSourceController;
 use App\Http\Controllers\Admin\SiteSettingsController;
@@ -26,6 +27,10 @@ Route::get('/admin', [AdminController::class, 'index'])
 Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('/settings', [SiteSettingsController::class, 'edit'])->name('settings.edit');
     Route::put('/settings', [SiteSettingsController::class, 'update'])->name('settings.update');
+    Route::put('/breaking-news/label', [BreakingNewsController::class, 'updateLabel'])->name('breaking-news.label');
+    Route::resource('breaking-news', BreakingNewsController::class)
+        ->parameters(['breaking-news' => 'breakingNews'])
+        ->except(['show']);
     Route::resource('advertisements', AdvertisementController::class)->except(['show']);
     Route::post('/sources/{source}/import', [NewsSourceController::class, 'import'])->name('sources.import');
     Route::resource('sources', NewsSourceController::class)->except(['show']);

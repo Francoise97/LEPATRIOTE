@@ -97,6 +97,9 @@
                     <a href="{{ route('admin.advertisements.index') }}" @class(['active' => request()->routeIs('admin.advertisements.*')])>
                         <span aria-hidden="true">▧</span> Publicités
                     </a>
+                    <a href="{{ route('admin.breaking-news.index') }}" @class(['active' => request()->routeIs('admin.breaking-news.*')])>
+                        <span aria-hidden="true">≋</span> Fil info
+                    </a>
                     <a href="{{ route('admin.settings.edit') }}" @class(['active' => request()->routeIs('admin.settings.*')])>
                         <span aria-hidden="true">⚙</span> Apparence
                     </a>

@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Maquette responsive du site d'actualités Le Patriote.">
+    <title>Le Patriote — Maquette du site d'actualité</title>
+    <style>
+        :root {
+            --navy: #102b4e;
+            --navy-deep: #091b31;
+            --red: #a51d35;
+            --gold: #d3a64b;
+            --ink: #202b39;
+            --muted: #748093;
+            --line: #e7eaf0;
+            --paper: #f5f6f8;
+            --white: #fff;
+            --serif: Georgia, "Times New Roman", serif;
+            --sans: Arial, Helvetica, sans-serif;
+        }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); }
+        a { color: inherit; }
+        button, input { font: inherit; }
+        button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+        .shell { width: min(1200px, calc(100% - 44px)); margin: auto; }
+        .demo-note { padding: 9px 16px; background: #fff6df; color: #664a10; text-align: center; font-size: 11px; letter-spacing: .04em; }
+        .topline { background: var(--navy-deep); color: #dbe3ee; font-size: 11px; }
+        .topline-inner { min-height: 34px; display: flex; justify-content: space-between; align-items: center; }
+        .topline a { color: white; text-decoration: none; }
+        .masthead { background: white; }
+        .masthead-inner { min-height: 112px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+        .brand img { display: block; width: auto; height: 82px; }
+        .masthead-right { display: flex; align-items: center; gap: 24px; }
+        .masthead-slogan { color: var(--muted); font: italic 16px var(--serif); }
+        .search { display: flex; width: 225px; border-bottom: 1px solid #cbd2dc; }
+        .search input { width: 100%; padding: 9px 4px; border: 0; outline: 0; background: transparent; font-size: 13px; }
+        .search button { padding: 0 5px; border: 0; background: none; color: var(--navy); cursor: pointer; font-size: 18px; }
+        .menu-toggle { display: none; padding: 9px 12px; border: 1px solid var(--line); background: white; color: var(--navy); }
+        .nav { position: sticky; top: 0; z-index: 4; background: var(--navy); }
+        .nav-inner { display: flex; align-items: center; min-height: 49px; gap: 27px; overflow-x: auto; scrollbar-width: thin; }
+        .nav a { flex: 0 0 auto; color: white; text-decoration: none; text-transform: uppercase; font-size: 11px; font-weight: 700; letter-spacing: .08em; }
+        .nav a:hover, .nav a.active { color: #f0c86c; }
+        .nav .nav-live { margin-left: auto; color: #ffccd2; }
+        .ticker { background: var(--red); color: white; }
+        .ticker-inner { min-height: 43px; display: flex; align-items: center; gap: 20px; overflow: hidden; }
+        .ticker-label { flex: 0 0 auto; padding: 6px 9px; background: white; color: var(--red); text-transform: uppercase; font-size: 9px; font-weight: 800; letter-spacing: .09em; }
+        .ticker-items { display: flex; gap: 24px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+        .ticker-items::-webkit-scrollbar { display: none; }
+        .ticker a { color: white; text-decoration: none; font-size: 12px; }
+        .ticker a:hover { text-decoration: underline; }
+        main { padding: 30px 0 58px; }
+        .section-title { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin: 0 0 17px; border-bottom: 1px solid var(--line); }
+        .section-title h2 { margin: 0; padding: 0 0 10px; border-bottom: 3px solid var(--red); color: var(--navy); font: 700 23px var(--serif); }
+        .section-title a { padding-bottom: 12px; color: var(--red); font-size: 11px; font-weight: 700; text-decoration: none; text-transform: uppercase; letter-spacing: .05em; }
+        .lead-grid { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(265px, .75fr); gap: 24px; }
+        .lead { position: relative; min-height: 430px; overflow: hidden; display: flex; align-items: end; background: var(--navy); color: white; }
+        .lead::after { position: absolute; inset: 20% 0 0; background: linear-gradient(transparent, #07182de8); content: ""; }
+        .lead-link { position: absolute; z-index: 0; inset: 0; }
+        .lead-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .lead-content { position: relative; z-index: 1; padding: 34px; pointer-events: none; }
+        .lead-content a { pointer-events: auto; }
+        .tag { display: inline-block; padding: 6px 9px; background: var(--red); color: white; text-decoration: none; text-transform: uppercase; font-size: 9px; font-weight: 800; letter-spacing: .09em; }
+        .lead h1 { max-width: 700px; margin: 13px 0 11px; font: 700 clamp(29px, 4vw, 45px)/1.08 var(--serif); }
+        .lead h1 a { color: white; text-decoration: none; }
+        .lead-content > p { max-width: 620px; margin: 0 0 17px; color: #e3e8ef; font-size: 14px; line-height: 1.6; }
+        .meta { color: var(--muted); font-size: 11px; }
+        .lead .meta { color: #dbe2eb; }
+        .side { display: flex; flex-direction: column; gap: 20px; }
+        .popular { padding: 20px; background: white; border-top: 3px solid var(--navy); }
+        .popular h2 { margin: 0 0 7px; color: var(--navy); font: 700 21px var(--serif); }
+        .popular-item { display: grid; grid-template-columns: 35px 1fr; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line); }
+        .popular-item:last-child { padding-bottom: 0; border-bottom: 0; }
+        .popular-number { color: #cbd2dc; font: 700 27px/1 var(--serif); }
+        .popular-item a { color: var(--ink); font: 700 14px/1.35 var(--serif); text-decoration: none; }
+        .popular-item a:hover { color: var(--red); }
+        .popular-item .meta { margin-top: 5px; }
+        .advert { min-height: 92px; display: grid; place-items: center; background: #eef0f3; color: #9299a4; text-align: center; text-transform: uppercase; font-size: 9px; letter-spacing: .14em; }
+        .rubrics { display: flex; flex-wrap: wrap; gap: 8px; margin: 25px 0 37px; }
+        .rubric { padding: 9px 13px; border: 1px solid #dfe3e9; background: white; color: var(--navy); text-decoration: none; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+        .rubric:hover, .rubric.selected { border-color: var(--navy); background: var(--navy); color: white; }
+        .news-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 21px; }
+        .card { overflow: hidden; background: white; }
+        .card-image { display: block; height: 190px; overflow: hidden; background: #dce5ee; }
+        .card-image img { width: 100%; height: 100%; object-fit: cover; transition: transform .25s ease; }
+        .card:hover .card-image img { transform: scale(1.04); }
+        .card-body { padding: 16px 17px 18px; }
+        .card-category { color: var(--red); text-decoration: none; text-transform: uppercase; font-size: 9px; font-weight: 800; letter-spacing: .1em; }
+        .card h3 { margin: 8px 0; color: var(--navy); font: 700 19px/1.25 var(--serif); }
+        .card h3 a { text-decoration: none; }
+        .card h3 a:hover { color: var(--red); }
+        .card p { margin: 0 0 13px; color: #657185; font-size: 12px; line-height: 1.6; }
+        .no-result { display: none; padding: 28px; background: white; color: var(--muted); text-align: center; }
+        .article-view { max-width: 930px; margin: 0 auto; }
+        .back-link { display: inline-flex; gap: 8px; align-items: center; margin: 0 0 23px; color: var(--navy); font-size: 12px; font-weight: 700; text-decoration: none; }
+        .back-link:hover { color: var(--red); }
+        .article-header { max-width: 790px; margin: 0 auto 24px; }
+        .article-header h1 { margin: 12px 0; color: var(--navy); font: 700 clamp(32px, 5vw, 52px)/1.08 var(--serif); }
+        .article-deck { margin: 0 0 22px; color: #596679; font: 18px/1.6 var(--serif); }
+        .article-byline { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 15px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+        .author-avatar { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%; background: #e8edf3; color: var(--navy); font: 700 17px var(--serif); }
+        .author-details { flex: 1 1 180px; }
+        .author-details strong, .author-details span { display: block; }
+        .author-details strong { color: var(--navy); font-size: 12px; }
+        .author-details span, .article-date { margin-top: 4px; color: var(--muted); font-size: 11px; }
+        .article-cover { margin: 0 0 27px; background: white; }
+        .article-cover img { display: block; width: 100%; max-height: 510px; object-fit: cover; }
+        .article-cover figcaption { padding: 10px 13px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+        .article-columns { display: grid; grid-template-columns: minmax(0, 1fr) 205px; gap: 34px; align-items: start; }
+        .article-body { max-width: 700px; color: #293545; font: 18px/1.85 Georgia, "Times New Roman", serif; }
+        .article-body p { margin: 0 0 22px; }
+        .article-body h2 { margin: 34px 0 12px; color: var(--navy); font: 700 26px/1.25 var(--serif); }
+        .article-body blockquote { margin: 27px 0; padding: 8px 0 8px 19px; border-left: 4px solid var(--red); color: var(--navy); font: italic 22px/1.55 var(--serif); }
+        .article-tools { position: sticky; top: 75px; padding: 17px; background: white; border-top: 3px solid var(--navy); }
+        .article-tools h2 { margin: 0 0 12px; color: var(--navy); font: 700 17px var(--serif); }
+        .share-actions { display: grid; gap: 8px; }
+        .share-actions a, .share-actions button { padding: 10px; border: 1px solid var(--line); background: white; color: var(--navy); text-align: left; text-decoration: none; font-size: 11px; cursor: pointer; }
+        .share-actions a:hover, .share-actions button:hover { border-color: var(--red); color: var(--red); }
+        .share-status { min-height: 16px; margin: 8px 0 0; color: var(--muted); font-size: 10px; }
+        .article-tags { display: flex; flex-wrap: wrap; gap: 7px; margin: 28px 0; }
+        .article-tag { padding: 7px 10px; background: #e9edf2; color: var(--navy); font-size: 10px; }
+        .article-context { margin: 27px 0; padding: 16px 18px; border-left: 3px solid var(--gold); background: white; color: #586477; font-size: 12px; line-height: 1.6; }
+        .article-context strong { color: var(--navy); }
+        .related-section, .comments-placeholder { margin-top: 38px; }
+        .related-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; }
+        .related-item { padding: 16px; background: white; }
+        .related-item a { color: var(--navy); font: 700 16px/1.35 var(--serif); text-decoration: none; }
+        .related-item a:hover { color: var(--red); }
+        .comments-placeholder { padding: 20px; background: white; color: var(--muted); font-size: 12px; line-height: 1.6; }
+        .newsletter { display: grid; grid-template-columns: 1fr minmax(300px, .9fr); align-items: center; gap: 28px; margin-top: 40px; padding: 29px 32px; background: var(--navy); color: white; }
+        .newsletter h2 { margin: 0 0 7px; font: 700 24px var(--serif); }
+        .newsletter p { margin: 0; color: #d5deea; font-size: 12px; line-height: 1.55; }
+        .newsletter-form { display: flex; gap: 7px; }
+        .newsletter-form input { width: 100%; min-width: 0; padding: 12px; border: 0; background: white; font-size: 12px; }
+        .newsletter-form button { padding: 0 16px; border: 0; background: var(--red); color: white; font-size: 11px; font-weight: 700; cursor: pointer; }
+        .newsletter-form button:hover { background: #86162b; }
+        .newsletter-message { display: none; grid-column: 1 / -1; color: #ffe3a2 !important; }
+        footer { padding: 25px 0; background: var(--navy-deep); color: #d4dce6; font-size: 11px; }
+        .footer-inner { display: flex; justify-content: space-between; align-items: center; gap: 18px; }
+        .footer-inner p { margin: 0; }
+        .footer-links { display: flex; gap: 17px; }
+        .footer-links a { color: #d4dce6; text-decoration: none; }
+        @media (max-width: 850px) {
+            .masthead-inner { min-height: 88px; }
+            .masthead-slogan { display: none; }
+            .lead-grid { grid-template-columns: 1fr; }
+            .lead { min-height: 390px; }
+            .side { display: grid; grid-template-columns: 1fr 1fr; align-items: stretch; }
+            .popular-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+            .news-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 560px) {
+            .shell { width: calc(100% - 28px); }
+            .demo-note { font-size: 9px; }
+            .topline-inner { min-height: 31px; }
+            .masthead-inner { min-height: 73px; }
+            .brand img { height: 70px; }
+            .masthead-right { gap: 10px; }
+            .search { display: none; }
+            .menu-toggle { display: inline-block; }
+            .nav-inner { display: none; flex-direction: column; align-items: stretch; gap: 0; padding-top: 5px; padding-bottom: 8px; }
+            .nav.open .nav-inner { display: flex; }
+            .nav a { padding: 11px 2px; border-bottom: 1px solid #ffffff20; }
+            .nav .nav-live { margin-left: 0; }
+            .ticker-inner { min-height: 39px; gap: 11px; }
+            .ticker-label { font-size: 8px; }
+            .ticker a { font-size: 10px; }
+            main { padding-top: 18px; }
+            .lead { min-height: 365px; }
+            .lead-content { padding: 21px; }
+            .lead h1 { font-size: 29px; }
+            .side { display: flex; }
+            .popular-list, .news-grid { grid-template-columns: 1fr; }
+            .card-image { height: 205px; }
+            .article-columns { grid-template-columns: 1fr; gap: 8px; }
+            .article-tools { position: static; grid-row: 1; }
+            .article-body { font-size: 17px; }
+            .article-deck { font-size: 16px; }
+            .article-cover img { max-height: 310px; }
+            .related-list { grid-template-columns: 1fr; }
+            .newsletter { grid-template-columns: 1fr; gap: 16px; padding: 23px 20px; }
+            .newsletter-form { flex-direction: column; }
+            .newsletter-form button { min-height: 42px; }
+            .footer-inner { align-items: start; flex-direction: column; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-note">MAQUETTE DE PRÉSENTATION · Textes et visuels de démonstration : valider titres, légendes, crédits et droits avant publication</div>
+    <div class="topline">
+        <div class="shell topline-inner">
+            <span id="today">Le journal qui vous informe</span>
+            <a href="#newsletter">Abonnez-vous à notre newsletter&nbsp; →</a>
+        </div>
+    </div>
+    <header class="masthead">
+        <div class="shell masthead-inner">
+            <a class="brand" href="#" aria-label="Le Patriote, accueil">
+                <img src="../backend/public/images/logo.png" alt="Le Patriote — L'actualité, notre engagement">
+            </a>
+            <div class="masthead-right">
+                <span class="masthead-slogan">L'actualité, au cœur de l'essentiel</span>
+                <form class="search" role="search" id="search-form">
+                    <input id="search-input" type="search" placeholder="Rechercher un article" aria-label="Rechercher un article">
+                    <button type="submit" aria-label="Lancer la recherche">⌕</button>
+                </form>
+                <button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">Menu ☰</button>
+            </div>
+        </div>
+    </header>
+    <nav class="nav" id="primary-nav" aria-label="Navigation principale">
+        <div class="shell nav-inner">
+            <a class="active" href="#">Accueil</a>
+            <a href="#actualites" data-filter="Politique">Politique</a>
+            <a href="#actualites" data-filter="Économie">Économie</a>
+            <a href="#actualites" data-filter="Société">Société</a>
+            <a href="#actualites" data-filter="Culture">Culture</a>
+            <a href="#actualites" data-filter="Sport">Sport</a>
+            <a href="#actualites" data-filter="International">International</a>
+            <a class="nav-live" href="#dernieres">En direct&nbsp; ●</a>
+        </div>
+    </nav>
+    <div class="ticker" id="dernieres">
+        <div class="shell ticker-inner">
+            <span class="ticker-label">Le fil info</span>
+            <div class="ticker-items">
+                <a href="#actualites">Côte d'Ivoire · Les grands rendez-vous de la semaine</a>
+                <a href="#actualites">Économie · Les initiatives qui font bouger les territoires</a>
+                <a href="#actualites">Culture · À découvrir cette semaine</a>
+            </div>
+        </div>
+    </div>
+
+    <main class="shell">
+        <div id="home-view">
+        <section class="lead-grid" aria-label="À la une">
+            <article class="lead">
+                <a class="lead-link" href="#article/dossier-avenir" aria-label="Lire le grand dossier sur l'avenir du pays">
+                    <img class="lead-photo" src="../backend/storage/app/public/uploads/article_1793720099_6235.JPG" alt="" fetchpriority="high">
+                </a>
+                <div class="lead-content">
+                    <a class="tag" href="#actualites" data-filter="Politique">Le grand dossier</a>
+                    <h1><a href="#article/dossier-avenir">Côte d'Ivoire : les grands enjeux qui dessinent l'avenir du pays</a></h1>
+                    <p>Un regard sur les initiatives, les débats et les projets qui façonnent la vie des Ivoiriens. Un dossier de la rédaction.</p>
+                    <div class="meta">Par La rédaction &nbsp;·&nbsp; 5 min de lecture</div>
+                </div>
+            </article>
+            <aside class="side">
+                <section class="popular">
+                    <div class="section-title"><h2>À ne pas manquer</h2></div>
+                    <div class="popular-list">
+                        <article class="popular-item"><span class="popular-number">01</span><div><a href="#article/vie-publique">Les initiatives locales au cœur du développement</a><div class="meta">Politique · 12 min</div></div></article>
+                        <article class="popular-item"><span class="popular-number">02</span><div><a href="#article/entreprendre-autrement">Entrepreneuriat : ces idées qui créent des opportunités</a><div class="meta">Économie · 18 min</div></div></article>
+                        <article class="popular-item"><span class="popular-number">03</span><div><a href="#article/scene-culturelle">Culture : les talents ivoiriens sur le devant de la scène</a><div class="meta">Culture · 24 min</div></div></article>
+                    </div>
+                </section>
+                <div class="advert">Espace partenaire</div>
+            </aside>
+        </section>
+
+        <nav class="rubrics" aria-label="Filtrer par rubrique">
+            <a class="rubric selected" href="#actualites" data-filter="all">Toutes les rubriques</a>
+            <a class="rubric" href="#actualites" data-filter="Politique">Politique</a>
+            <a class="rubric" href="#actualites" data-filter="Économie">Économie</a>
+            <a class="rubric" href="#actualites" data-filter="Société">Société</a>
+            <a class="rubric" href="#actualites" data-filter="Culture">Culture</a>
+            <a class="rubric" href="#actualites" data-filter="Sport">Sport</a>
+        </nav>
+
+        <section id="actualites" aria-labelledby="latest-title">
+            <div class="section-title">
+                <h2 id="latest-title">Les dernières actualités</h2>
+                <a href="#actualites" data-filter="all">Toute l'actualité&nbsp; →</a>
+            </div>
+            <div class="news-grid" id="news-grid">
+                <article class="card" data-category="Économie">
+                    <a class="card-image" href="#article/entreprendre-autrement"><img src="../backend/storage/app/public/uploads/article_1793720096_3133.jpg" alt="Illustration d'un article sur l'économie" loading="lazy"></a>
+                    <div class="card-body"><a class="card-category" href="#actualites" data-filter="Économie">Économie</a><h3><a href="#article/entreprendre-autrement">Entreprendre autrement : des projets qui font grandir les communautés</a></h3><p>Portrait d'initiatives locales et de celles et ceux qui les font vivre.</p><div class="meta">La rédaction · 08:45</div></div>
+                </article>
+                <article class="card" data-category="Politique">
+                    <a class="card-image" href="#article/vie-publique"><img src="../backend/storage/app/public/uploads/article_1793720097_5156.jpg" alt="Illustration d'un article sur la vie publique" loading="lazy"></a>
+                    <div class="card-body"><a class="card-category" href="#actualites" data-filter="Politique">Politique</a><h3><a href="#article/vie-publique">Vie publique : les dossiers à suivre cette semaine</a></h3><p>Les principaux rendez-vous et sujets qui animent le débat public.</p><div class="meta">La rédaction · 08:20</div></div>
+                </article>
+                <article class="card" data-category="Société">
+                    <a class="card-image" href="#article/initiatives-citoyennes"><img src="../backend/storage/app/public/uploads/article_1793720098_8395.jpg" alt="Illustration d'un article de société" loading="lazy"></a>
+                    <div class="card-body"><a class="card-category" href="#actualites" data-filter="Société">Société</a><h3><a href="#article/initiatives-citoyennes">Au plus près des réalités et des initiatives citoyennes</a></h3><p>Rencontres et reportages au cœur des quartiers et des villages.</p><div class="meta">La rédaction · Hier</div></div>
+                </article>
+                <article class="card" data-category="Culture">
+                    <a class="card-image" href="#article/scene-culturelle"><img src="../backend/storage/app/public/uploads/article_1793720100_1109.jpg" alt="Illustration d'un article culturel" loading="lazy"></a>
+                    <div class="card-body"><a class="card-category" href="#actualites" data-filter="Culture">Culture</a><h3><a href="#article/scene-culturelle">Scène culturelle : les rendez-vous et découvertes du moment</a></h3><p>Musique, création, patrimoine : la sélection culturelle du Patriote.</p><div class="meta">La rédaction · Hier</div></div>
+                </article>
+                <article class="card" data-category="Sport">
+                    <a class="card-image" href="#article/sport-ivoirien"><img src="../backend/storage/app/public/uploads/article_1793720102_9614.JPG" alt="Illustration d'un article de sport" loading="lazy"></a>
+                    <div class="card-body"><a class="card-category" href="#actualites" data-filter="Sport">Sport</a><h3><a href="#article/sport-ivoirien">Sport ivoirien : les performances à retenir cette semaine</a></h3><p>Résultats, portraits et actualités des disciplines suivies par la rédaction.</p><div class="meta">La rédaction · Hier</div></div>
+                </article>
+                <article class="card" data-category="International">
+                    <a class="card-image" href="#article/actualite-internationale"><img src="../backend/storage/app/public/uploads/article_1793720104_4199.jpg" alt="Illustration d'un article international" loading="lazy"></a>
+                    <div class="card-body"><a class="card-category" href="#actualites" data-filter="International">International</a><h3><a href="#article/actualite-internationale">L'actualité du monde et ses répercussions en Afrique</a></h3><p>Les événements internationaux expliqués et mis en perspective.</p><div class="meta">La rédaction · Hier</div></div>
+                </article>
+            </div>
+            <p class="no-result" id="no-result" role="status">Aucun article ne correspond à votre recherche.</p>
+        </section>
+
+        <section class="newsletter" id="newsletter" aria-labelledby="newsletter-title">
+            <div><h2 id="newsletter-title">L'essentiel, directement dans votre boîte mail.</h2><p>Recevez la sélection de la rédaction et ne manquez aucune actualité importante.</p></div>
+            <form class="newsletter-form" id="newsletter-form">
+                <label for="newsletter-email" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">Votre adresse e-mail</label>
+                <input id="newsletter-email" type="email" placeholder="Votre adresse e-mail" required>
+                <button type="submit">Je m'inscris</button>
+            </form>
+            <p class="newsletter-message" id="newsletter-message" role="status">Merci ! Cette inscription est une démonstration de la maquette.</p>
+        </section>
+        </div>
+        <article class="article-view" id="article-view" hidden aria-live="polite"></article>
+    </main>
+    <footer>
+        <div class="shell footer-inner">
+            <p>© <span id="year"></span> Le Patriote · L'actualité, notre engagement.</p>
+            <nav class="footer-links" aria-label="Liens de pied de page"><a href="#actualites">À propos</a><a href="#newsletter">Contact</a><a href="#newsletter">Newsletter</a></nav>
+        </div>
+    </footer>
+    <script>
+        const cards = [...document.querySelectorAll('.card')];
+        const filterLinks = [...document.querySelectorAll('[data-filter]')];
+        const searchInput = document.getElementById('search-input');
+        const noResult = document.getElementById('no-result');
+        const homeView = document.getElementById('home-view');
+        const articleView = document.getElementById('article-view');
+        let activeFilter = 'all';
+
+        const articles = {
+            'dossier-avenir': {
+                category: 'Le grand dossier',
+                title: "Côte d'Ivoire : les grands enjeux qui dessinent l'avenir du pays",
+                excerpt: 'Un regard sur les initiatives, les débats et les projets qui façonnent la vie des Ivoiriens. Un dossier de la rédaction.',
+                image: '../backend/storage/app/public/uploads/article_1793720099_6235.JPG',
+                alt: 'Illustration photographique du grand dossier',
+                caption: 'Image d’illustration du dossier. Légende et contexte à confirmer avant publication.',
+                credit: 'Crédit photo à renseigner par la rédaction',
+                author: 'La rédaction',
+                role: 'Service actualité',
+                date: '4 novembre 2026 à 09:00',
+                updated: 'Mis à jour le 4 novembre 2026 à 09:30',
+                isoDate: '2026-11-04T09:00:00',
+                readTime: '5 min de lecture',
+                views: '1 248 lectures',
+                source: 'Les sources et documents de référence devront être ajoutés par la rédaction.',
+                tags: ['Côte d’Ivoire', 'Développement', 'Dossier'],
+                body: [
+                    {type: 'p', text: 'Quels sont les grands sujets qui transforment le quotidien et préparent l’avenir ? Cette page de démonstration présente la structure prévue pour un dossier du Patriote. Les informations, chiffres, citations et références doivent être vérifiés puis complétés par la rédaction avant toute publication.'},
+                    {type: 'h2', text: 'Des enjeux au cœur du quotidien'},
+                    {type: 'p', text: 'Éducation, emploi, infrastructures, santé et accès aux services essentiels sont autant de thèmes qui peuvent être documentés dans ce dossier. Chaque angle éditorial devra s’appuyer sur des faits datés, des interlocuteurs identifiés et des documents consultables.'},
+                    {type: 'quote', text: 'La parole des personnes concernées et la vérification des informations sont indispensables à un traitement équilibré.'},
+                    {type: 'h2', text: 'Ce qu’il faut retenir'},
+                    {type: 'p', text: 'Le dossier final pourra rassembler les éléments de contexte, les décisions annoncées, les réponses des acteurs concernés et les conséquences concrètes pour les populations. Les données factuelles et les liens vers les sources seront renseignés à la validation éditoriale.'}
+                ],
+                related: ['vie-publique', 'initiatives-citoyennes']
+            },
+            'entreprendre-autrement': {
+                category: 'Économie',
+                title: 'Entreprendre autrement : des projets qui font grandir les communautés',
+                excerpt: 'Portrait d’initiatives locales et de celles et ceux qui les font vivre.',
+                image: '../backend/storage/app/public/uploads/article_1793720096_3133.jpg',
+                alt: 'Image d’illustration de l’article économie',
+                caption: 'Illustration. Ajouter une légende qui décrit précisément la scène.',
+                credit: 'Crédit photo à renseigner par la rédaction',
+                author: 'La rédaction',
+                role: 'Service économie',
+                date: '4 novembre 2026 à 08:45',
+                updated: 'Mis à jour le 4 novembre 2026 à 09:10',
+                isoDate: '2026-11-04T08:45:00',
+                readTime: '4 min de lecture',
+                views: '824 lectures',
+                source: 'Témoignages, documents et chiffres à attribuer et vérifier avant publication.',
+                tags: ['Économie', 'Entrepreneuriat', 'Initiatives locales'],
+                body: [
+                    {type: 'p', text: 'Derrière les activités économiques, des femmes et des hommes développent des projets au plus près des besoins de leur communauté. Cet article de démonstration donne un aperçu du format éditorial ; les exemples et informations devront être remplacés par des témoignages et des faits vérifiés.'},
+                    {type: 'h2', text: 'Des projets ancrés dans leur territoire'},
+                    {type: 'p', text: 'La rédaction pourra présenter l’origine du projet, les personnes qui le portent, les services proposés et les difficultés rencontrées. Les montants, dates et chiffres de création d’emplois ne seront publiés qu’après vérification et attribution à une source.'},
+                    {type: 'quote', text: 'Un reportage complet donne la parole aux porteurs de projet, aux bénéficiaires et aux acteurs concernés.'},
+                    {type: 'h2', text: 'Les prochaines étapes'},
+                    {type: 'p', text: 'Les informations pratiques, les résultats obtenus et les perspectives seront complétés après entretien. Les éventuels liens vers des documents ou organismes utiles seront ajoutés à la version validée de l’article.'}
+                ],
+                related: ['vie-publique', 'actualite-internationale']
+            },
+            'vie-publique': {
+                category: 'Politique',
+                title: 'Vie publique : les dossiers à suivre cette semaine',
+                excerpt: 'Les principaux rendez-vous et sujets qui animent le débat public.',
+                image: '../backend/storage/app/public/uploads/article_1793720097_5156.jpg',
+                alt: 'Image d’illustration d’un article de politique',
+                caption: 'Image d’illustration. Identifier les personnes et le lieu avant publication.',
+                credit: 'Crédit photo à renseigner par la rédaction',
+                author: 'La rédaction',
+                role: 'Service politique',
+                date: '4 novembre 2026 à 08:20',
+                updated: 'Mis à jour le 4 novembre 2026 à 08:40',
+                isoDate: '2026-11-04T08:20:00',
+                readTime: '3 min de lecture',
+                views: '1 036 lectures',
+                source: 'Ordres du jour et déclarations officielles à référencer par la rédaction.',
+                tags: ['Politique', 'Vie publique', 'Côte d’Ivoire'],
+                body: [
+                    {type: 'p', text: 'Plusieurs sujets d’actualité peuvent retenir l’attention cette semaine. Cette fiche de démonstration montre comment présenter le contexte, les dates et les acteurs d’un article politique sans remplacer la vérification journalistique.'},
+                    {type: 'h2', text: 'Les rendez-vous à l’agenda'},
+                    {type: 'p', text: 'Pour chaque événement, l’article définitif indiquera la date, le lieu, l’organisme concerné et les documents permettant de suivre les échanges. Les annonces seront distinguées des décisions officiellement adoptées.'},
+                    {type: 'quote', text: 'Un traitement factuel précise qui s’exprime, dans quel contexte et sur la base de quels éléments.'},
+                    {type: 'h2', text: 'Contexte et suites attendues'},
+                    {type: 'p', text: 'Les déclarations des différentes parties et les prochaines étapes seront ajoutées à mesure qu’elles seront confirmées. La rédaction indiquera clairement ce qui est établi et ce qui reste en attente.'}
+                ],
+                related: ['dossier-avenir', 'initiatives-citoyennes']
+            },
+            'initiatives-citoyennes': {
+                category: 'Société',
+                title: 'Au plus près des réalités et des initiatives citoyennes',
+                excerpt: 'Rencontres et reportages au cœur des quartiers et des villages.',
+                image: '../backend/storage/app/public/uploads/article_1793720098_8395.jpg',
+                alt: 'Image d’illustration d’un reportage société',
+                caption: 'Image d’illustration. Vérifier le lieu et recueillir l’autorisation des personnes reconnaissables.',
+                credit: 'Crédit photo à renseigner par la rédaction',
+                author: 'La rédaction',
+                role: 'Service société',
+                date: '3 novembre 2026 à 16:30',
+                updated: 'Mis à jour le 3 novembre 2026 à 17:00',
+                isoDate: '2026-11-03T16:30:00',
+                readTime: '4 min de lecture',
+                views: '592 lectures',
+                source: 'Personnes interrogées et informations de terrain à identifier dans la version finale.',
+                tags: ['Société', 'Reportage', 'Initiatives citoyennes'],
+                body: [
+                    {type: 'p', text: 'Dans les quartiers comme dans les villages, des habitants s’organisent pour répondre à des besoins locaux. Ce modèle d’article est prévu pour accueillir des observations de terrain, des témoignages recueillis avec accord et le contexte nécessaire à leur compréhension.'},
+                    {type: 'h2', text: 'Des réponses construites sur place'},
+                    {type: 'p', text: 'La rédaction décrira les actions observées, leur calendrier et les personnes impliquées. Les effets annoncés seront attribués à ceux qui les rapportent et, lorsque c’est possible, mis en regard de données indépendantes.'},
+                    {type: 'quote', text: 'Un reportage donne la parole aux personnes concernées sans confondre témoignage individuel et fait général.'},
+                    {type: 'h2', text: 'Donner le contexte'},
+                    {type: 'p', text: 'Les informations de localisation, les éventuelles difficultés et les réponses des autorités ou organismes concernés complèteront l’article après vérification.'}
+                ],
+                related: ['dossier-avenir', 'scene-culturelle']
+            },
+            'scene-culturelle': {
+                category: 'Culture',
+                title: 'Scène culturelle : les rendez-vous et découvertes du moment',
+                excerpt: 'Musique, création, patrimoine : la sélection culturelle du Patriote.',
+                image: '../backend/storage/app/public/uploads/article_1793720100_1109.jpg',
+                alt: 'Image d’illustration d’un article culturel',
+                caption: 'Illustration. Ajouter le nom de l’événement ou de l’œuvre représentée.',
+                credit: 'Crédit photo à renseigner par la rédaction',
+                author: 'La rédaction',
+                role: 'Service culture',
+                date: '3 novembre 2026 à 14:15',
+                updated: 'Mis à jour le 3 novembre 2026 à 14:45',
+                isoDate: '2026-11-03T14:15:00',
+                readTime: '3 min de lecture',
+                views: '476 lectures',
+                source: 'Programme, organisateurs et artistes à citer dans l’article publié.',
+                tags: ['Culture', 'Arts', 'Agenda'],
+                body: [
+                    {type: 'p', text: 'La vie culturelle s’exprime à travers des événements, des œuvres et des rencontres. Cette page d’exemple illustre l’espace éditorial prévu pour présenter une actualité culturelle et fournir des informations pratiques aux lecteurs.'},
+                    {type: 'h2', text: 'Les rendez-vous à découvrir'},
+                    {type: 'p', text: 'Pour chaque proposition, la version publiée précisera le nom de l’événement, les artistes ou intervenants, le lieu, les dates, les horaires et les modalités d’accès vérifiés auprès des organisateurs.'},
+                    {type: 'quote', text: 'La culture se raconte aussi par les voix de celles et ceux qui créent, transmettent et font vivre les œuvres.'},
+                    {type: 'h2', text: 'Une scène en mouvement'},
+                    {type: 'p', text: 'Critiques, entretiens et annonces seront clairement identifiés. Les informations de billetterie et les crédits des images seront confirmés avant publication.'}
+                ],
+                related: ['sport-ivoirien', 'initiatives-citoyennes']
+            },
+            'sport-ivoirien': {
+                category: 'Sport',
+                title: 'Sport ivoirien : les performances à retenir cette semaine',
+                excerpt: 'Résultats, portraits et actualités des disciplines suivies par la rédaction.',
+                image: '../backend/storage/app/public/uploads/article_1793720102_9614.JPG',
+                alt: 'Image d’illustration d’un article de sport',
+                caption: 'Illustration. Vérifier la discipline, la rencontre et les personnes représentées.',
+                credit: 'Crédit photo à renseigner par la rédaction',
+                author: 'La rédaction',
+                role: 'Service sport',
+                date: '3 novembre 2026 à 11:10',
+                updated: 'Mis à jour le 3 novembre 2026 à 11:30',
+                isoDate: '2026-11-03T11:10:00',
+                readTime: '3 min de lecture',
+                views: '713 lectures',
+                source: 'Résultats et déclarations à confirmer auprès des organisateurs ou fédérations.',
+                tags: ['Sport', 'Résultats', 'Côte d’Ivoire'],
+                body: [
+                    {type: 'p', text: 'Résultats, parcours et rendez-vous sportifs nourrissent l’actualité de la semaine. Les informations de cette page de démonstration devront être remplacées par des résultats confirmés et des propos attribués.'},
+                    {type: 'h2', text: 'Les faits marquants'},
+                    {type: 'p', text: 'La rédaction indiquera la compétition, la date, le lieu, les équipes ou athlètes concernés et le résultat vérifié. Les règles de la discipline et les enjeux de la rencontre seront expliqués aux lecteurs.'},
+                    {type: 'quote', text: 'Un compte rendu sportif distingue le résultat officiel, les réactions et l’analyse.'},
+                    {type: 'h2', text: 'La suite du calendrier'},
+                    {type: 'p', text: 'Les prochaines rencontres et les horaires seront publiés après confirmation des organisateurs.'}
+                ],
+                related: ['scene-culturelle', 'actualite-internationale']
+            },
+            'actualite-internationale': {
+                category: 'International',
+                title: 'L’actualité du monde et ses répercussions en Afrique',
+                excerpt: 'Les événements internationaux expliqués et mis en perspective.',
+                image: '../backend/storage/app/public/uploads/article_1793720104_4199.jpg',
+                alt: 'Image d’illustration d’un article international',
+                caption: 'Illustration. Décrire le lieu et l’événement réellement représentés.',
+                credit: 'Crédit photo à renseigner par la rédaction',
+                author: 'La rédaction',
+                role: 'Service international',
+                date: '3 novembre 2026 à 09:40',
+                updated: 'Mis à jour le 3 novembre 2026 à 10:00',
+                isoDate: '2026-11-03T09:40:00',
+                readTime: '5 min de lecture',
+                views: '905 lectures',
+                source: 'Sources primaires et agences à identifier et recouper dans la version finale.',
+                tags: ['International', 'Afrique', 'Décryptage'],
+                body: [
+                    {type: 'p', text: 'Un événement international mérite d’être expliqué et replacé dans son contexte. Ce modèle de publication réserve une place aux faits établis, à leur chronologie et aux conséquences qui peuvent être documentées pour les lecteurs africains.'},
+                    {type: 'h2', text: 'Comprendre les faits'},
+                    {type: 'p', text: 'La version définitive précisera où et quand les événements se sont produits, qui en sont les principaux acteurs et quelles sources indépendantes permettent de confirmer les informations.'},
+                    {type: 'quote', text: 'Les faits confirmés, les déclarations et les analyses doivent rester clairement distingués.'},
+                    {type: 'h2', text: 'Les conséquences pour la région'},
+                    {type: 'p', text: 'Toute conséquence évoquée pour l’Afrique ou la Côte d’Ivoire sera explicitée et appuyée par des éléments vérifiables, des spécialistes identifiés ou des documents de référence.'}
+                ],
+                related: ['entreprendre-autrement', 'vie-publique']
+            }
+        };
+
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>"']/g, (character) => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            })[character]);
+        }
+
+        function renderArticle(slug) {
+            const article = articles[slug];
+            if (!article) {
+                homeView.hidden = false;
+                articleView.hidden = true;
+                document.title = "Le Patriote — Maquette du site d'actualité";
+                return;
+            }
+
+            const paragraphs = article.body.map((block) => {
+                const text = escapeHtml(block.text);
+                if (block.type === 'h2') return `<h2>${text}</h2>`;
+                if (block.type === 'quote') return `<blockquote>${text}</blockquote>`;
+                return `<p>${text}</p>`;
+            }).join('');
+            const related = article.related.map((relatedSlug) => {
+                const item = articles[relatedSlug];
+                return `<article class="related-item"><a href="#article/${encodeURIComponent(relatedSlug)}">${escapeHtml(item.title)}</a><div class="meta">${escapeHtml(item.category)} · ${escapeHtml(item.readTime)}</div></article>`;
+            }).join('');
+
+            articleView.innerHTML = `
+                <a class="back-link" href="#actualites">← Retour aux actualités</a>
+                <header class="article-header">
+                    <a class="tag" href="#actualites">${escapeHtml(article.category)}</a>
+                    <h1>${escapeHtml(article.title)}</h1>
+                    <p class="article-deck">${escapeHtml(article.excerpt)}</p>
+                    <div class="article-byline">
+                        <div class="author-avatar" aria-hidden="true">${escapeHtml(article.author.slice(0, 1))}</div>
+                        <div class="author-details"><strong>${escapeHtml(article.author)}</strong><span>${escapeHtml(article.role)}</span></div>
+                        <div class="article-date"><time datetime="${escapeHtml(article.isoDate)}">${escapeHtml(article.date)}</time><br>${escapeHtml(article.updated)}</div>
+                    </div>
+                    <div class="meta" style="margin-top:12px">${escapeHtml(article.readTime)} · ${escapeHtml(article.views)}</div>
+                </header>
+                <figure class="article-cover">
+                    <img src="${escapeHtml(article.image)}" alt="${escapeHtml(article.alt)}">
+                    <figcaption>${escapeHtml(article.caption)} · ${escapeHtml(article.credit)}</figcaption>
+                </figure>
+                <div class="article-columns">
+                    <div>
+                        <div class="article-body">${paragraphs}</div>
+                        <div class="article-context"><strong>Sources et vérification</strong><br>${escapeHtml(article.source)}</div>
+                        <div class="article-tags" aria-label="Mots-clés">${article.tags.map((tag) => `<span class="article-tag">#${escapeHtml(tag)}</span>`).join('')}</div>
+                    </div>
+                    <aside class="article-tools" aria-label="Partager cet article">
+                        <h2>Partager l’article</h2>
+                        <div class="share-actions">
+                            <a class="share-link" data-network="whatsapp" target="_blank" rel="noopener noreferrer">WhatsApp ↗</a>
+                            <a class="share-link" data-network="facebook" target="_blank" rel="noopener noreferrer">Facebook ↗</a>
+                            <button type="button" id="copy-article-link">Copier le lien</button>
+                        </div>
+                        <p class="share-status" id="share-status" role="status"></p>
+                    </aside>
+                </div>
+                <section class="related-section" aria-labelledby="related-title">
+                    <div class="section-title"><h2 id="related-title">À lire aussi</h2></div>
+                    <div class="related-list">${related}</div>
+                </section>
+                <section class="comments-placeholder" aria-label="Commentaires">
+                    <strong>Commentaires</strong><br>Les commentaires pourront être activés après validation des règles de modération par la rédaction.
+                </section>`;
+
+            const pageUrl = encodeURIComponent(window.location.href);
+            const articleTitle = encodeURIComponent(article.title);
+            articleView.querySelector('[data-network="whatsapp"]').href = `https://wa.me/?text=${articleTitle}%20${pageUrl}`;
+            articleView.querySelector('[data-network="facebook"]').href = `https://www.facebook.com/sharer/sharer.php?u=${pageUrl}`;
+            homeView.hidden = true;
+            articleView.hidden = false;
+            document.title = `${article.title} — Le Patriote`;
+        }
+
+        function syncPageWithHash() {
+            const match = window.location.hash.match(/^#article\/([^/]+)$/);
+            if (match) {
+                renderArticle(decodeURIComponent(match[1]));
+            } else {
+                homeView.hidden = false;
+                articleView.hidden = true;
+                document.title = "Le Patriote — Maquette du site d'actualité";
+            }
+            window.scrollTo({top: 0, behavior: 'instant'});
+        }
+
+        function updateCards() {
+            const query = (searchInput?.value || '').trim().toLocaleLowerCase('fr');
+            let visible = 0;
+            cards.forEach((card) => {
+                const matchesCategory = activeFilter === 'all' || card.dataset.category === activeFilter;
+                const matchesSearch = !query || card.textContent.toLocaleLowerCase('fr').includes(query);
+                card.hidden = !(matchesCategory && matchesSearch);
+                if (!card.hidden) visible += 1;
+            });
+            noResult.style.display = visible ? 'none' : 'block';
+        }
+
+        filterLinks.forEach((link) => {
+            link.addEventListener('click', (event) => {
+                event.preventDefault();
+                activeFilter = link.dataset.filter || 'all';
+                document.querySelectorAll('.rubric').forEach((rubric) => {
+                    rubric.classList.toggle('selected', rubric.dataset.filter === activeFilter);
+                });
+                updateCards();
+                if (link.closest('.nav')) {
+                    document.getElementById('primary-nav').classList.remove('open');
+                    document.getElementById('menu-toggle').setAttribute('aria-expanded', 'false');
+                }
+                document.getElementById('actualites').scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        document.getElementById('search-form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            updateCards();
+            document.getElementById('actualites').scrollIntoView({ behavior: 'smooth' });
+        });
+        searchInput.addEventListener('input', updateCards);
+        document.getElementById('menu-toggle').addEventListener('click', (event) => {
+            const nav = document.getElementById('primary-nav');
+            const open = nav.classList.toggle('open');
+            event.currentTarget.setAttribute('aria-expanded', String(open));
+        });
+        document.getElementById('newsletter-form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            document.getElementById('newsletter-message').style.display = 'block';
+            event.currentTarget.reset();
+        });
+        articleView.addEventListener('click', async (event) => {
+            if (event.target.id !== 'copy-article-link') return;
+            const status = document.getElementById('share-status');
+            try {
+                await navigator.clipboard.writeText(window.location.href);
+                status.textContent = 'Lien copié.';
+            } catch {
+                status.textContent = 'Copie indisponible dans cet aperçu. Vous pouvez copier l’adresse depuis la barre du navigateur.';
+            }
+        });
+        window.addEventListener('hashchange', syncPageWithHash);
+        document.getElementById('year').textContent = new Date().getFullYear();
+        document.getElementById('today').textContent = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+        syncPageWithHash();
+    </script>
+</body>
+</html>

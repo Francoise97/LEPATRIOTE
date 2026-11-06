@@ -16,11 +16,14 @@ class Article extends Model
         'excerpt',
         'featured_image',
         'category_id',
+        'country_id',
+        'source_id',
         'user_id',
         'status',
         'is_featured',
         'is_breaking',
         'views_count',
+        'likes_count',
         'reading_time',
         'meta_title',
         'meta_description',
@@ -39,6 +42,16 @@ class Article extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
+    }
+
+    public function source()
+    {
+        return $this->belongsTo(NewsSource::class, 'source_id');
+    }
+
     public function author()
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -52,6 +65,11 @@ class Article extends Model
     public function comments()
     {
         return $this->hasMany(Comment::class);
+    }
+
+    public function likes()
+    {
+        return $this->hasMany(ArticleLike::class);
     }
 
     public function media()

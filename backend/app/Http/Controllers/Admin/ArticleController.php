@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\Category;
+use App\Models\Country;
 use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -13,7 +14,7 @@ class ArticleController extends Controller
 {
     public function index()
     {
-        $articles = Article::with(['category', 'author'])
+        $articles = Article::with(['category', 'author', 'country'])
             ->latest()
             ->paginate(10);
 
@@ -23,9 +24,10 @@ class ArticleController extends Controller
     public function create()
     {
         $categories = Category::all();
+        $countries = Country::where('is_active', true)->orderBy('name')->get();
         $tags = Tag::all();
 
-        return view('admin.articles.create', compact('categories', 'tags'));
+        return view('admin.articles.create', compact('categories', 'countries', 'tags'));
     }
 
     public function store(Request $request)
@@ -36,6 +38,7 @@ class ArticleController extends Controller
             'excerpt' => 'nullable|string',
             'source_url' => 'nullable|url|max:2048',
             'category_id' => 'required|exists:categories,id',
+            'country_id' => 'nullable|exists:countries,id',
             'featured_image' => 'nullable|image|max:2048',
             'is_featured' => 'boolean',
             'is_breaking' => 'boolean',
@@ -56,6 +59,7 @@ class ArticleController extends Controller
             'excerpt' => $validated['excerpt'] ?? null,
             'source_url' => $validated['source_url'] ?? null,
             'category_id' => $validated['category_id'],
+            'country_id' => $validated['country_id'] ?? null,
             'user_id' => auth()->id(),
             'featured_image' => $imagePath,
             'is_featured' => $validated['is_featured'] ?? false,
@@ -75,9 +79,10 @@ class ArticleController extends Controller
     {
         $article->load('tags');
         $categories = Category::all();
+        $countries = Country::where('is_active', true)->orderBy('name')->get();
         $tags = Tag::all();
 
-        return view('admin.articles.edit', compact('article', 'categories', 'tags'));
+        return view('admin.articles.edit', compact('article', 'categories', 'countries', 'tags'));
     }
 
     public function update(Request $request, Article $article)
@@ -88,6 +93,7 @@ class ArticleController extends Controller
             'excerpt' => 'nullable|string',
             'source_url' => 'nullable|url|max:2048',
             'category_id' => 'required|exists:categories,id',
+            'country_id' => 'nullable|exists:countries,id',
             'featured_image' => 'nullable|image|max:2048',
             'is_featured' => 'boolean',
             'is_breaking' => 'boolean',
@@ -111,6 +117,7 @@ class ArticleController extends Controller
             'excerpt' => $validated['excerpt'] ?? null,
             'source_url' => $validated['source_url'] ?? null,
             'category_id' => $validated['category_id'],
+            'country_id' => $validated['country_id'] ?? null,
             'featured_image' => $imagePath,
             'is_featured' => $validated['is_featured'] ?? false,
             'is_breaking' => $validated['is_breaking'] ?? false,

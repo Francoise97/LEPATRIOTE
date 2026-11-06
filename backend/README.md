@@ -61,6 +61,29 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 
 Les flux de Togo First, de Republic of Togo et du Monde sont vérifiés toutes les heures. Les nouveaux éléments reconnus sont importés en brouillon pour validation par la rédaction. Les éléments déjà importés ne sont pas remplacés ni mis à jour automatiquement, et le texte disponible dépend du contenu fourni par chaque flux.
 
+## Administration éditoriale
+
+Après déploiement, exécuter les migrations et ajouter les pays de départ :
+
+```bash
+php artisan migrate
+php artisan db:seed --class=CountrySeeder
+```
+
+Créer d’abord un compte de connexion, puis lui accorder le rôle administrateur depuis le terminal du backend :
+
+```bash
+php artisan admin:promote admin@example.com
+```
+
+L’accès à `/admin` est réservé aux comptes éditeur et administrateur. L’administration permet de modifier le logo, les couleurs et la typographie du slogan, de gérer les publicités et les sources RSS, et d’éditer les articles avec leur pays et leur rubrique. Une source RSS doit être vérifiée et active avant import ; ses articles sont créés en brouillon pour contrôle éditorial. Les articles marqués « Afficher dans le bandeau défilant » apparaissent dans le bandeau de la page d’accueil. Les mentions J’aime sont limitées à une réaction réversible par session et par article.
+
+Les visuels envoyés par l’administration sont stockés sur le disque public Laravel. Pour les servir, créer le lien de stockage une fois :
+
+```bash
+php artisan storage:link
+```
+
 Pour vérifier la planification :
 
 ```bash

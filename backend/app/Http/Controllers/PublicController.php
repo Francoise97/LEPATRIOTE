@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Advertisement;
 use App\Models\Article;
+use App\Models\ArticleLike;
 use App\Models\Category;
+use App\Models\Country;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -12,17 +16,21 @@ class PublicController extends Controller
 {
     public function index(Request $request)
     {
-        $search = trim($request->validate([
+        $filters = $request->validate([
             'q' => ['nullable', 'string', 'max:100'],
-        ])['q'] ?? '');
+            'country' => ['nullable', 'integer', 'exists:countries,id'],
+        ]);
+        $search = trim($filters['q'] ?? '');
+        $countryId = $filters['country'] ?? null;
         $searchArticles = fn () => $this->publishedArticles()
+            ->when($countryId, fn ($query) => $query->where('country_id', $countryId))
             ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search) {
                 $query->where('title', 'like', "%{$search}%")
                     ->orWhere('excerpt', 'like', "%{$search}%");
             }));
 
         $heroArticles = $searchArticles()
-            ->with(['category', 'author'])
+            ->with(['category', 'author', 'country'])
             ->orderByDesc('is_featured')
             ->latest()
             ->take(3)
@@ -30,7 +38,7 @@ class PublicController extends Controller
         $heroArticleIds = $heroArticles->modelKeys();
 
         $latestArticles = $searchArticles()
-            ->with('category')
+            ->with(['category', 'country'])
             ->when($search === '' && $heroArticleIds !== [], fn ($query) => $query->whereNotIn('id', $heroArticleIds))
             ->latest()
             ->take(6)
@@ -39,7 +47,7 @@ class PublicController extends Controller
         $relatedArticles = $heroArticleIds === []
             ? collect()
             : $searchArticles()
-                ->with('category')
+                ->with(['category', 'country'])
                 ->where('category_id', $heroArticles->first()->category_id)
                 ->whereNotIn('id', $heroArticleIds)
                 ->orderByDesc('views_count')
@@ -50,7 +58,7 @@ class PublicController extends Controller
         if ($relatedArticles->count() < 3) {
             $relatedArticles = $relatedArticles->concat(
                 $searchArticles()
-                    ->with('category')
+                    ->with(['category', 'country'])
                     ->when($heroArticleIds !== [], fn ($query) => $query->whereNotIn('id', $heroArticleIds))
                     ->whereNotIn('id', $relatedArticles->pluck('id')->all())
                     ->orderByDesc('views_count')
@@ -61,33 +69,74 @@ class PublicController extends Controller
         }
 
         $breakingArticles = $searchArticles()
-            ->with('category')
+            ->with(['category', 'country'])
             ->where('is_breaking', true)
             ->latest()
             ->take(5)
             ->get();
 
+        if ($breakingArticles->isEmpty()) {
+            $breakingArticles = $searchArticles()
+                ->with(['category', 'country'])
+                ->latest()
+                ->take(5)
+                ->get();
+        }
+
         $categories = Category::active()
             ->orderBy('order')
             ->orderBy('name')
             ->get();
+        $countries = Country::where('is_active', true)->orderBy('name')->get();
+        $advertisements = Advertisement::currentlyVisible()
+            ->orderBy('sort_order')
+            ->latest()
+            ->get()
+            ->map(fn (Advertisement $advertisement) => [
+                'title' => $advertisement->title,
+                'image' => asset('storage/'.$advertisement->image_path),
+                'url' => $advertisement->target_url,
+                'placement' => $advertisement->placement,
+            ]);
+        $articleIds = $heroArticles->modelKeys();
+        $articleIds = array_merge($articleIds, $relatedArticles->pluck('id')->all(), $latestArticles->pluck('id')->all());
+        $visitorToken = ArticleLike::visitorToken();
+        $likedArticleIds = ArticleLike::query()
+            ->where('visitor_token', $visitorToken)
+            ->whereIn('article_id', $articleIds)
+            ->pluck('article_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
 
         return Inertia::render('Welcome', [
-            'heroArticles' => $heroArticles->map(fn (Article $article) => $this->articleForFrontend($article)),
-            'relatedArticles' => $relatedArticles->map(fn (Article $article) => $this->articleForFrontend($article)),
-            'latestArticles' => $latestArticles->map(fn (Article $article) => $this->articleForFrontend($article)),
-            'breakingArticles' => $breakingArticles->map(fn (Article $article) => $this->articleForFrontend($article)),
+            'heroArticles' => $heroArticles->map(fn (Article $article) => $this->articleForFrontend($article, $likedArticleIds)),
+            'relatedArticles' => $relatedArticles->map(fn (Article $article) => $this->articleForFrontend($article, $likedArticleIds)),
+            'latestArticles' => $latestArticles->map(fn (Article $article) => $this->articleForFrontend($article, $likedArticleIds)),
+            'breakingArticles' => $breakingArticles->map(fn (Article $article) => $this->articleForFrontend($article, $likedArticleIds)),
             'categories' => $categories->map(fn (Category $category) => [
                 'id' => $category->id,
                 'name' => $category->name,
                 'url' => route('category.show', $category->slug),
             ]),
+            'countries' => $countries->map(fn (Country $country) => [
+                'id' => $country->id,
+                'name' => $country->name,
+            ]),
+            'selectedCountry' => $countryId ? (int) $countryId : null,
+            'advertisements' => $advertisements,
             'search' => $search,
             'csrfToken' => csrf_token(),
             'homeUrl' => route('home'),
             'newsletterUrl' => route('newsletter.subscribe'),
             'adminUrl' => route('dashboard'),
             'currentDate' => now()->locale('fr')->translatedFormat('l d F Y'),
+            'siteAppearance' => [
+                'logo' => Setting::get('logo') ? asset('storage/'.Setting::get('logo')) : asset('images/logo.png'),
+                'slogan' => Setting::get('brand_slogan', 'L’information qui engage'),
+                'font' => Setting::get('brand_font', 'serif'),
+                'primaryColor' => Setting::get('primary_color', '#102b4e'),
+                'accentColor' => Setting::get('accent_color', '#a51d35'),
+            ],
         ]);
     }
 
@@ -115,6 +164,7 @@ class PublicController extends Controller
             ->orderBy('order')
             ->orderBy('name')
             ->get();
+        $countries = Country::where('is_active', true)->orderBy('name')->get();
 
         $wordCount = count(preg_split(
             '/\s+/u',
@@ -124,7 +174,7 @@ class PublicController extends Controller
         ) ?: []);
         $readingTime = $article->reading_time ?: max(1, (int) ceil($wordCount / 220));
 
-        return view('public.article', compact('article', 'relatedArticles', 'categories', 'readingTime'));
+        return view('public.article', compact('article', 'relatedArticles', 'categories', 'countries', 'readingTime'));
     }
 
     public function category($slug)
@@ -154,7 +204,7 @@ class PublicController extends Controller
             });
     }
 
-    private function articleForFrontend(Article $article): array
+    private function articleForFrontend(Article $article, array $likedArticleIds = []): array
     {
         return [
             'id' => $article->id,
@@ -164,9 +214,13 @@ class PublicController extends Controller
             'image' => $article->featured_image ? asset('storage/'.$article->featured_image) : null,
             'category' => $article->category?->name ?? 'Actualité',
             'categoryUrl' => $article->category ? route('category.show', $article->category->slug) : null,
+            'country' => $article->country?->name,
             'url' => route('article.show', $article->slug),
+            'likeUrl' => route('article.like', $article),
             'publishedAt' => ($article->published_at ?? $article->created_at)->toIso8601String(),
             'views' => (int) $article->views_count,
+            'likes' => (int) $article->likes_count,
+            'liked' => in_array($article->id, $likedArticleIds, true),
         ];
     }
 }

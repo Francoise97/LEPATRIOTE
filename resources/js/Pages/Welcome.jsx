@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 
 function SearchIcon() {
@@ -36,7 +36,57 @@ function EyeIcon() {
     );
 }
 
-function ArticleCard({ article }) {
+function HeartIcon() {
+    return (
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M20.8 8.7c0 4.2-8.8 10-8.8 10s-8.8-5.8-8.8-10A4.7 4.7 0 0 1 12 6.1a4.7 4.7 0 0 1 8.8 2.6Z" />
+        </svg>
+    );
+}
+
+function LikeButton({ article, csrfToken }) {
+    const [liked, setLiked] = useState(article.liked);
+    const [likes, setLikes] = useState(article.likes);
+    const [busy, setBusy] = useState(false);
+    const [error, setError] = useState('');
+
+    async function toggleLike() {
+        if (busy) return;
+        setBusy(true);
+        setError('');
+
+        try {
+            const response = await fetch(article.likeUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+            if (!response.ok) throw new Error('Impossible d’enregistrer votre réaction.');
+            const result = await response.json();
+            setLiked(result.liked);
+            setLikes(result.likes);
+        } catch {
+            setError('Votre réaction n’a pas pu être enregistrée. Réessayez.');
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    return (
+        <span className="like-control">
+            <button type="button" className={`like-button${liked ? ' is-liked' : ''}`} onClick={toggleLike} disabled={busy} aria-pressed={liked} aria-label={`${liked ? 'Retirer votre mention J’aime' : 'Aimer cet article'} — ${likes} mention${likes === 1 ? '' : 's'} J’aime`}>
+                <HeartIcon /> {new Intl.NumberFormat('fr-FR').format(likes)}
+            </button>
+            {error && <span className="like-error" role="status">{error}</span>}
+        </span>
+    );
+}
+
+function ArticleCard({ article, csrfToken }) {
     return (
         <article className="article-card">
             <a
@@ -53,6 +103,7 @@ function ArticleCard({ article }) {
                 ) : (
                     <span className="article-category">{article.category}</span>
                 )}
+                {article.country && <span className="article-country">{article.country}</span>}
                 <h3><a href={article.url}>{article.title}</a></h3>
                 <p>{article.excerpt}</p>
                 <div className="article-meta">
@@ -63,6 +114,7 @@ function ArticleCard({ article }) {
                         <EyeIcon />
                         {new Intl.NumberFormat('fr-FR').format(article.views)}
                     </span>
+                    <LikeButton article={article} csrfToken={csrfToken} />
                 </div>
             </div>
         </article>
@@ -75,15 +127,27 @@ export default function Welcome({
     latestArticles = [],
     breakingArticles = [],
     categories = [],
+    countries = [],
+    selectedCountry = null,
+    advertisements = [],
     search = '',
     csrfToken,
     homeUrl,
     newsletterUrl,
     adminUrl,
     currentDate,
+    siteAppearance = {},
 }) {
     const [activeSlide, setActiveSlide] = useState(0);
     const hero = heroArticles[activeSlide];
+
+    useEffect(() => {
+        if (heroArticles.length < 2) return undefined;
+        const timer = window.setInterval(() => {
+            setActiveSlide((current) => (current + 1) % heroArticles.length);
+        }, 7000);
+        return () => window.clearInterval(timer);
+    }, [heroArticles.length]);
 
     const changeSlide = (direction) => {
         setActiveSlide((current) => (current + direction + heroArticles.length) % heroArticles.length);
@@ -93,7 +157,7 @@ export default function Welcome({
         <>
             <Head title="Accueil" />
 
-            <div className="news-site">
+            <div className="news-site" style={{ '--navy': siteAppearance.primaryColor || '#102b4e', '--red': siteAppearance.accentColor || '#a51d35' }}>
                 <div className="topbar">
                     <div className="site-container topbar-inner">
                         <time>{currentDate}</time>
@@ -107,14 +171,19 @@ export default function Welcome({
                 <header className="masthead">
                     <div className="site-container masthead-inner">
                         <Link className="brand" href={homeUrl} aria-label="Le Patriote, accueil">
-                            <img src="/images/logo.png" alt="Le Patriote" />
+                            <img src={siteAppearance.logo || '/images/logo.png'} alt="Le Patriote" />
                         </Link>
 
-                        <p className="masthead-slogan">L'information qui engage</p>
+                        <p className={`masthead-slogan${siteAppearance.font === 'sans' ? ' masthead-slogan--sans' : ''}`}>{siteAppearance.slogan || 'L’information qui engage'}</p>
 
                         <form className="search-form" method="get" action={homeUrl} role="search">
                             <label className="sr-only" htmlFor="site-search">Rechercher une actualité</label>
                             <input id="site-search" name="q" type="search" defaultValue={search} placeholder="Rechercher une actualité..." />
+                            <label className="sr-only" htmlFor="country-filter">Filtrer par pays</label>
+                            <select id="country-filter" name="country" defaultValue={selectedCountry || ''} aria-label="Filtrer par pays">
+                                <option value="">Tous les pays</option>
+                                {countries.map((country) => <option key={country.id} value={country.id}>{country.name}</option>)}
+                            </select>
                             <button type="submit" aria-label="Rechercher"><SearchIcon /></button>
                         </form>
 
@@ -138,6 +207,9 @@ export default function Welcome({
                             <div className="breaking-track">
                                 {breakingArticles.map((article) => (
                                     <a key={article.id} href={article.url}>{article.title}</a>
+                                ))}
+                                {breakingArticles.map((article) => (
+                                    <a key={`repeat-${article.id}`} href={article.url} aria-hidden="true" tabIndex={-1}>{article.title}</a>
                                 ))}
                             </div>
                         </div>
@@ -208,6 +280,12 @@ export default function Welcome({
                             ) : (
                                 <p className="related-empty">Les articles les plus lus apparaîtront ici.</p>
                             )}
+                            {advertisements.filter((advertisement) => advertisement.placement === 'sidebar').map((advertisement, index) => (
+                                <a className="sidebar-ad" key={`${advertisement.url}-${index}`} href={advertisement.url} target="_blank" rel="noopener noreferrer">
+                                    <span className="ad-label">PUBLICITÉ</span>
+                                    <img src={advertisement.image} alt={advertisement.title} loading="lazy" />
+                                </a>
+                            ))}
                         </aside>
                     </section>
 
@@ -230,6 +308,17 @@ export default function Welcome({
                         </section>
                     )}
 
+                    {advertisements.some((advertisement) => advertisement.placement === 'home') && (
+                        <aside className="advertisement-strip" aria-label="Publicité">
+                            {advertisements.filter((advertisement) => advertisement.placement === 'home').map((advertisement, index) => (
+                                <a key={`${advertisement.url}-${index}`} href={advertisement.url} target="_blank" rel="noopener noreferrer" aria-label={advertisement.title}>
+                                    <span className="ad-label">PUBLICITÉ</span>
+                                    <img src={advertisement.image} alt={advertisement.title} loading="lazy" />
+                                </a>
+                            ))}
+                        </aside>
+                    )}
+
                     <section className="latest-section" aria-labelledby="latest-heading">
                         <div className="section-title section-title--row">
                             <div>
@@ -240,7 +329,7 @@ export default function Welcome({
                         </div>
                         {latestArticles.length > 0 ? (
                             <div className="article-grid">
-                                {latestArticles.map((article) => <ArticleCard key={article.id} article={article} />)}
+                                {latestArticles.map((article) => <ArticleCard key={article.id} article={article} csrfToken={csrfToken} />)}
                             </div>
                         ) : (
                             <p className="empty-state">
@@ -264,6 +353,17 @@ export default function Welcome({
                         </form>
                     </section>
                 </main>
+
+                {advertisements.filter((advertisement) => advertisement.placement === 'footer').length > 0 && (
+                    <aside className="footer-ad-strip" aria-label="Publicité">
+                        {advertisements.filter((advertisement) => advertisement.placement === 'footer').map((advertisement, index) => (
+                            <a key={`${advertisement.url}-${index}`} href={advertisement.url} target="_blank" rel="noopener noreferrer" aria-label={advertisement.title}>
+                                <span className="ad-label">PUBLICITÉ</span>
+                                <img src={advertisement.image} alt={advertisement.title} loading="lazy" />
+                            </a>
+                        ))}
+                    </aside>
+                )}
 
                 <footer className="site-footer">
                     <div className="site-container footer-inner">

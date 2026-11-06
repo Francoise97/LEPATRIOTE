@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Article;
 use App\Models\Category;
+use App\Models\Country;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -50,6 +51,7 @@ class PublicHomePageTest extends TestCase
                 ->has('heroArticles', 1)
                 ->where('heroArticles.0.title', 'Un article à la une')
                 ->where('heroArticles.0.excerpt', 'Un résumé de l’article.')
+                ->has('breakingArticles', 1)
                 ->has('categories', 1)
                 ->where('categories.0.name', 'Politique')
                 ->missing('heroArticles.1')
@@ -64,6 +66,50 @@ class PublicHomePageTest extends TestCase
                 ->component('Welcome')
                 ->has('heroArticles', 0)
                 ->has('latestArticles', 0)
+            );
+    }
+
+    public function test_home_page_can_filter_published_articles_by_country(): void
+    {
+        $category = Category::create([
+            'name' => 'Politique',
+            'slug' => 'politique',
+            'is_active' => true,
+        ]);
+        $country = Country::create([
+            'name' => 'Côte d’Ivoire',
+            'code' => 'CI',
+            'slug' => 'cote-d-ivoire',
+            'is_active' => true,
+        ]);
+        $author = User::factory()->create();
+
+        Article::create([
+            'title' => 'Article en Côte d’Ivoire',
+            'slug' => 'article-cote-ivoire',
+            'content' => 'Actualité locale.',
+            'category_id' => $category->id,
+            'country_id' => $country->id,
+            'user_id' => $author->id,
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+        Article::create([
+            'title' => 'Article sans pays',
+            'slug' => 'article-sans-pays',
+            'content' => 'Autre actualité.',
+            'category_id' => $category->id,
+            'user_id' => $author->id,
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
+        $this->get('/?country='.$country->id)
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('selectedCountry', $country->id)
+                ->has('heroArticles', 1)
+                ->where('heroArticles.0.title', 'Article en Côte d’Ivoire')
             );
     }
 }

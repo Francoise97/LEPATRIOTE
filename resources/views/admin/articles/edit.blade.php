@@ -23,6 +23,16 @@
     </div>
 
     <div style="margin-bottom: 16px;">
+        <label for="country_id" style="display: block; margin-bottom: 8px; font-weight: 600;">Pays de l’actualité</label>
+        <select id="country_id" name="country_id" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+            <option value="">Pays non défini</option>
+            @foreach($countries as $country)
+                <option value="{{ $country->id }}" @selected(old('country_id', $article->country_id) == $country->id)>{{ $country->name }}</option>
+            @endforeach
+        </select>
+    </div>
+
+    <div style="margin-bottom: 16px;">
         <label style="display: block; margin-bottom: 8px; font-weight: 600;" for="content">Texte complet de l’article</label>
         <textarea id="content" name="content" rows="14" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">{{ old('content', $article->content) }}</textarea>
         <small>Publiez uniquement un texte rédigé par votre rédaction ou que vous êtes autorisé à republier.</small>
@@ -44,6 +54,11 @@
             <option value="draft" {{ $article->status == 'draft' ? 'selected' : '' }}>Brouillon</option>
             <option value="published" {{ $article->status == 'published' ? 'selected' : '' }}>Publié</option>
         </select>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:20px;margin-bottom:20px;">
+        <label><input type="checkbox" name="is_featured" value="1" @checked(old('is_featured', $article->is_featured))> Mettre à la une</label>
+        <label><input type="checkbox" name="is_breaking" value="1" @checked(old('is_breaking', $article->is_breaking))> Afficher dans le bandeau défilant</label>
     </div>
 
     <button type="submit" style="background: #3b82f6; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer;">Mettre à jour</button>

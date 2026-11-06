@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use App\Models\Article;
 use App\Models\Category;
+use App\Models\Country;
+use App\Models\NewsSource;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
@@ -11,13 +13,46 @@ use SimplePie\SimplePie;
 
 class ImportRssFeed extends Command
 {
-    protected $signature = 'rss:import {url} {--category= : Rubrique de secours (slug) si le flux ne fournit pas de rubrique reconnue}';
+    protected $signature = 'rss:import {url?} {--source= : Identifiant d’une source vérifiée enregistrée} {--category= : Rubrique de secours (slug)} {--country= : Code ISO ou slug du pays}';
 
     protected $description = 'Importer les articles RSS en brouillon pour validation éditoriale';
 
     public function handle()
     {
-        $url = $this->argument('url');
+        $source = null;
+        if ($this->option('source')) {
+            $source = NewsSource::query()
+                ->whereKey($this->option('source'))
+                ->where('is_active', true)
+                ->where('is_trusted', true)
+                ->first();
+
+            if (! $source) {
+                $this->error('La source est introuvable, inactive ou n’a pas été vérifiée.');
+
+                return self::FAILURE;
+            }
+        }
+
+        $url = $source?->feed_url ?? $this->argument('url');
+        if (! $url || ! filter_var($url, FILTER_VALIDATE_URL) || ! in_array(parse_url($url, PHP_URL_SCHEME), ['http', 'https'], true)) {
+            $this->error('Indiquez une URL de flux HTTP(S) valide ou une source enregistrée vérifiée.');
+
+            return self::FAILURE;
+        }
+
+        $country = $source?->country;
+        if (! $country && $this->option('country')) {
+            $country = Country::query()
+                ->where('code', strtoupper($this->option('country')))
+                ->orWhere('slug', Str::slug($this->option('country')))
+                ->first();
+            if (! $country) {
+                $this->error('Le pays indiqué est introuvable.');
+
+                return self::FAILURE;
+            }
+        }
         $fallbackCategory = null;
 
         if ($this->option('category')) {
@@ -105,6 +140,8 @@ class ImportRssFeed extends Command
                 'category_id' => $category->id,
                 'user_id' => $author->id,
                 'source_url' => $link,
+                'source_id' => $source?->id,
+                'country_id' => $country?->id,
                 'is_featured' => false,
                 'is_breaking' => false,
                 'status' => 'draft',

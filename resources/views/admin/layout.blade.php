@@ -35,6 +35,7 @@
         .side-nav a:hover, .side-nav a.active { color: white; background: rgba(255,255,255,.11); }
         .side-nav a.active { box-shadow: inset 3px 0 #e46b78; }
         .side-nav svg { width: 18px; height: 18px; flex: none; opacity: .9; }
+        .side-nav a > span { width: 18px; text-align: center; font-size: 17px; }
         .sidebar-bottom { margin-top: auto; }
         .sidebar-divider { height: 1px; margin: 18px 8px; background: rgba(255,255,255,.12); }
         .sidebar-footer { padding: 0 12px; color: #91a5b8; font-size: 11px; line-height: 1.6; }
@@ -89,6 +90,17 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="8" height="7" rx="1.5"/><rect x="13" y="4" width="8" height="7" rx="1.5"/><rect x="3" y="13" width="8" height="7" rx="1.5"/><rect x="13" y="13" width="8" height="7" rx="1.5"/></svg>
                     Catégories
                 </a>
+                @if(auth()->user()?->isAdmin())
+                    <a href="{{ route('admin.sources.index') }}" @class(['active' => request()->routeIs('admin.sources.*')])>
+                        <span aria-hidden="true">◎</span> Sources fiables
+                    </a>
+                    <a href="{{ route('admin.advertisements.index') }}" @class(['active' => request()->routeIs('admin.advertisements.*')])>
+                        <span aria-hidden="true">▧</span> Publicités
+                    </a>
+                    <a href="{{ route('admin.settings.edit') }}" @class(['active' => request()->routeIs('admin.settings.*')])>
+                        <span aria-hidden="true">⚙</span> Apparence
+                    </a>
+                @endif
             </nav>
             <div class="sidebar-bottom">
                 <div class="sidebar-divider"></div>

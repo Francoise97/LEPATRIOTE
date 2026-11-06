@@ -8,6 +8,7 @@ const backendPath = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
     root: path.resolve(backendPath, '..'),
     envDir: backendPath,
+    cacheDir: path.resolve(backendPath, 'node_modules/.vite'),
     resolve: {
         alias: {
             '@inertiajs/react': path.resolve(backendPath, 'node_modules/@inertiajs/react'),

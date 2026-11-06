@@ -10,6 +10,8 @@
             <th style="padding: 12px; text-align: left;">Image</th>
             <th style="padding: 12px; text-align: left;">Titre</th>
             <th style="padding: 12px; text-align: left;">Catégorie</th>
+            <th style="padding: 12px; text-align: left;">Pays</th>
+            <th style="padding: 12px; text-align: left;">Source</th>
             <th style="padding: 12px; text-align: left;">Statut</th>
             <th style="padding: 12px; text-align: left;">Actions</th>
         </tr>
@@ -26,6 +28,14 @@
             </td>
             <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">{{ $article->title }}</td>
             <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">{{ $article->category->name ?? '-' }}</td>
+            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">{{ $article->country?->name ?? '-' }}</td>
+            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
+                @if($article->source_url)
+                    <a href="{{ $article->source_url }}" target="_blank" rel="noopener noreferrer" style="color:#3b82f6;">Voir</a>
+                @else
+                    -
+                @endif
+            </td>
             <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">{{ $article->status }}</td>
             <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
                 <a href="/admin/articles/{{ $article->id }}/edit" style="color: #3b82f6;">Modifier</a>
@@ -33,7 +43,7 @@
         </tr>
         @empty
         <tr>
-            <td colspan="5" style="padding: 24px; text-align: center;">Aucun article pour le moment</td>
+            <td colspan="7" style="padding: 24px; text-align: center;">Aucun article pour le moment</td>
         </tr>
         @endforelse
     </tbody>

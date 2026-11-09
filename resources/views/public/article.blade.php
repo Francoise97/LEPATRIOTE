@@ -58,6 +58,16 @@
         .featured-image { margin: 0 0 28px; background: var(--white); }
         .featured-image img { display: block; width: 100%; max-height: 570px; object-fit: cover; }
         .featured-image figcaption { padding: 10px 13px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+        .article-media { margin: 0 0 28px; }
+        .article-media h2 { margin: 0 0 14px; color: var(--navy); font: 700 24px Georgia, 'Times New Roman', serif; }
+        .article-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+        .article-gallery figure { margin: 0; background: var(--white); }
+        .article-gallery img { display: block; width: 100%; max-height: 360px; object-fit: cover; }
+        .article-gallery figcaption { padding: 9px 11px; color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
+        .article-video { width: 100%; max-height: 570px; aspect-ratio: 16 / 9; background: #000; }
+        .article-document-list { margin: 0; padding: 0; list-style: none; }
+        .article-document-list li { padding: 12px 0; border-bottom: 1px solid var(--line); }
+        .article-document-list a { color: var(--navy); font-weight: 700; }
         .article-layout { display: grid; grid-template-columns: minmax(0, 1fr) 215px; gap: 34px; align-items: start; }
         .article-content { min-width: 0; color: #293545; font: 18px/1.85 Georgia, 'Times New Roman', serif; overflow-wrap: anywhere; }
         .article-content p { margin: 0 0 22px; }
@@ -208,6 +218,58 @@
                         <figcaption>{{ $article->excerpt }}</figcaption>
                     @endif
                 </figure>
+            @endif
+
+            @php
+                $galleryImages = $article->media->where('collection_name', 'gallery');
+                $videos = $article->media->where('collection_name', 'video');
+                $documents = $article->media->where('collection_name', 'document');
+            @endphp
+            @if($galleryImages->isNotEmpty())
+                <section class="article-media" aria-labelledby="gallery-heading">
+                    <h2 id="gallery-heading">Galerie photos</h2>
+                    <div class="article-gallery">
+                        @foreach($galleryImages as $image)
+                            <figure>
+                                <img src="{{ $image->publicUrl() }}" alt="{{ $image->file_name }}" loading="lazy">
+                                <figcaption>{{ $image->file_name }}</figcaption>
+                            </figure>
+                        @endforeach
+                    </div>
+                </section>
+            @endif
+            @if($videos->isNotEmpty())
+                <section class="article-media" aria-labelledby="videos-heading">
+                    <h2 id="videos-heading">Vidéos</h2>
+                    @foreach($videos as $video)
+                        @if($video->file_type === 'video/external' && $video->videoEmbedUrl())
+                            <iframe
+                                class="article-video"
+                                src="{{ $video->videoEmbedUrl() }}"
+                                title="Vidéo : {{ $article->title }}"
+                                loading="lazy"
+                                allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                referrerpolicy="strict-origin-when-cross-origin"
+                                allowfullscreen
+                            ></iframe>
+                        @elseif($video->file_type !== 'video/external')
+                            <video class="article-video" controls preload="metadata">
+                                <source src="{{ $video->publicUrl() }}" type="{{ $video->file_type }}">
+                                Votre navigateur ne prend pas en charge la lecture vidéo.
+                            </video>
+                        @endif
+                    @endforeach
+                </section>
+            @endif
+            @if($documents->isNotEmpty())
+                <section class="article-media" aria-labelledby="documents-heading">
+                    <h2 id="documents-heading">Documents</h2>
+                    <ul class="article-document-list">
+                        @foreach($documents as $document)
+                            <li><a href="{{ $document->publicUrl() }}" target="_blank" rel="noopener noreferrer">{{ $document->file_name }} (PDF)</a></li>
+                        @endforeach
+                    </ul>
+                </section>
             @endif
 
             <div class="article-layout">

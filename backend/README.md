@@ -84,6 +84,8 @@ Les visuels envoyés par l’administration sont stockés sur le disque public L
 php artisan storage:link
 ```
 
+Les articles acceptent une galerie de 10 images, jusqu’à 3 vidéos de 100 Mo chacune, des liens YouTube/Vimeo et jusqu’à 10 PDF. Le fichier `public/.user.ini` règle les limites pour les serveurs PHP-FPM/CGI. Avec `php artisan serve` sous Windows, PHP CLI n’applique pas ce fichier : régler les mêmes valeurs dans le `php.ini` indiqué par `php --ini`, puis redémarrer le serveur. Le serveur web ou proxy doit également autoriser des requêtes d’au moins 320 Mo.
+
 Pour vérifier la planification :
 
 ```bash

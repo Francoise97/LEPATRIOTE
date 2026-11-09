@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 
 function SearchIcon() {
@@ -40,6 +40,14 @@ function HeartIcon() {
     return (
         <svg aria-hidden="true" viewBox="0 0 24 24">
             <path d="M20.8 8.7c0 4.2-8.8 10-8.8 10s-8.8-5.8-8.8-10A4.7 4.7 0 0 1 12 6.1a4.7 4.7 0 0 1 8.8 2.6Z" />
+        </svg>
+    );
+}
+
+function CloseIcon() {
+    return (
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="m6 6 12 12M18 6 6 18" />
         </svg>
     );
 }
@@ -94,7 +102,11 @@ function ArticleCard({ article, csrfToken }) {
                 href={article.url}
                 aria-label={`Lire : ${article.title}`}
             >
-                {article.image ? <img src={article.image} alt="" loading="lazy" /> : <span>Le Patriote</span>}
+                {article.image
+                    ? <img src={article.image} alt="" loading="lazy" />
+                    : article.video
+                        ? <span className="article-video-label">▶ Vidéo</span>
+                        : <span>Le Patriote</span>}
                 {article.category && <span className="image-category">{article.category}</span>}
             </a>
             <div className="article-copy">
@@ -140,18 +152,85 @@ export default function Welcome({
     siteAppearance = {},
 }) {
     const [activeSlide, setActiveSlide] = useState(0);
-    const hero = heroArticles[activeSlide];
+    const [activeAdSlide, setActiveAdSlide] = useState(0);
+    const [adOpen, setAdOpen] = useState(advertisements.length > 0);
+    const [canCloseAd, setCanCloseAd] = useState(false);
+    const [pauseAdSlides, setPauseAdSlides] = useState(false);
+    const adDialogRef = useRef(null);
+    const adCloseButtonRef = useRef(null);
+    const ad = advertisements[activeAdSlide];
+    const heroSlides = heroArticles.flatMap((article) => {
+        const imageSlides = (article.images || []).map((image, index) => ({
+            ...article,
+            slideId: `${article.id}-image-${index}`,
+            slideImage: image,
+            slideVideo: null,
+        }));
+        const videoSlides = (article.videos || []).map((video, index) => ({
+            ...article,
+            slideId: `${article.id}-video-${index}`,
+            slideImage: null,
+            slideVideo: video,
+        }));
+        const slides = [...imageSlides, ...videoSlides];
+
+        return slides.length > 0
+            ? slides
+            : [{ ...article, slideId: `${article.id}-article`, slideImage: null, slideVideo: null }];
+    });
+    const hero = heroSlides[activeSlide];
 
     useEffect(() => {
-        if (heroArticles.length < 2) return undefined;
+        if (heroSlides.length < 2) return undefined;
         const timer = window.setInterval(() => {
-            setActiveSlide((current) => (current + 1) % heroArticles.length);
+            setActiveSlide((current) => (current + 1) % heroSlides.length);
         }, 7000);
         return () => window.clearInterval(timer);
-    }, [heroArticles.length]);
+    }, [heroSlides.length]);
 
     const changeSlide = (direction) => {
-        setActiveSlide((current) => (current + direction + heroArticles.length) % heroArticles.length);
+        setActiveSlide((current) => (current + direction + heroSlides.length) % heroSlides.length);
+    };
+
+    useEffect(() => {
+        if (!adOpen || advertisements.length === 0) return undefined;
+
+        const keyHandler = (event) => {
+            if (event.key === 'Escape' && canCloseAd) setAdOpen(false);
+        };
+        document.addEventListener('keydown', keyHandler);
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        adDialogRef.current?.focus();
+
+        return () => {
+            document.removeEventListener('keydown', keyHandler);
+            document.body.style.overflow = previousOverflow;
+        };
+    }, [adOpen, advertisements.length, canCloseAd]);
+
+    useEffect(() => {
+        if (!adOpen || advertisements.length === 0) return undefined;
+
+        const timer = window.setTimeout(() => setCanCloseAd(true), 5000);
+        return () => window.clearTimeout(timer);
+    }, [adOpen, advertisements.length]);
+
+    useEffect(() => {
+        if (canCloseAd) adCloseButtonRef.current?.focus();
+    }, [canCloseAd]);
+
+    useEffect(() => {
+        if (!adOpen || pauseAdSlides || advertisements.length < 2) return undefined;
+
+        const timer = window.setInterval(() => {
+            setActiveAdSlide((current) => (current + 1) % advertisements.length);
+        }, 6000);
+        return () => window.clearInterval(timer);
+    }, [adOpen, advertisements.length, pauseAdSlides]);
+
+    const changeAdSlide = (direction) => {
+        setActiveAdSlide((current) => (current + direction + advertisements.length) % advertisements.length);
     };
 
     return (
@@ -159,6 +238,69 @@ export default function Welcome({
             <Head title="Accueil" />
 
             <div className="news-site" style={{ '--navy': siteAppearance.primaryColor || '#102b4e', '--red': siteAppearance.accentColor || '#a51d35' }}>
+                {adOpen && ad && (
+                    <div className="ad-modal-backdrop">
+                        <section
+                            className="ad-modal"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="ad-modal-title"
+                            aria-describedby="ad-modal-description"
+                            ref={adDialogRef}
+                            tabIndex="-1"
+                            onMouseEnter={() => setPauseAdSlides(true)}
+                            onMouseLeave={() => setPauseAdSlides(false)}
+                            onFocusCapture={() => setPauseAdSlides(true)}
+                            onBlurCapture={(event) => {
+                                if (!event.currentTarget.contains(event.relatedTarget)) setPauseAdSlides(false);
+                            }}
+                            onKeyDown={(event) => {
+                                if (event.key !== 'Tab') return;
+
+                                const focusable = [...event.currentTarget.querySelectorAll('a[href], button:not([disabled])')]
+                                    .filter((element) => element.getClientRects().length > 0);
+                                const first = focusable[0];
+                                const last = focusable[focusable.length - 1];
+
+                                if (event.shiftKey && document.activeElement === first) {
+                                    event.preventDefault();
+                                    last?.focus();
+                                } else if (!event.shiftKey && document.activeElement === last) {
+                                    event.preventDefault();
+                                    first?.focus();
+                                }
+                            }}
+                        >
+                            <div className="ad-modal-topline">
+                                <span className="ad-modal-badge">Publicité</span>
+                                {canCloseAd ? (
+                                    <button ref={adCloseButtonRef} className="ad-modal-close" type="button" onClick={() => setAdOpen(false)} aria-label="Fermer la publicité">
+                                        <CloseIcon />
+                                    </button>
+                                ) : (
+                                    <span className="ad-modal-countdown" aria-live="polite">Vous pourrez fermer dans quelques secondes</span>
+                                )}
+                            </div>
+                            <a className="ad-modal-link" key={`${ad.url}-${activeAdSlide}`} href={ad.url} target="_blank" rel="noopener noreferrer" aria-label={`Découvrir : ${ad.title}`}>
+                                <img className="ad-modal-image" src={ad.image} alt="" />
+                            </a>
+                            <div className="ad-modal-footer">
+                                <div>
+                                    <h2 id="ad-modal-title">{ad.title}</h2>
+                                    <p id="ad-modal-description">Découvrez cette offre proposée aux lecteurs du Patriote.</p>
+                                </div>
+                                {advertisements.length > 1 && (
+                                    <div className="ad-modal-controls" aria-label="Navigation des publicités">
+                                        <button type="button" onClick={() => changeAdSlide(-1)} aria-label="Publicité précédente">←</button>
+                                        <span aria-live="polite">{activeAdSlide + 1} / {advertisements.length}</span>
+                                        <button type="button" onClick={() => changeAdSlide(1)} aria-label="Publicité suivante">→</button>
+                                    </div>
+                                )}
+                            </div>
+                            {!canCloseAd && <span className="ad-modal-progress" aria-hidden="true" />}
+                        </section>
+                    </div>
+                )}
                 <div className="topbar">
                     <div className="site-container topbar-inner">
                         <time>{currentDate}</time>
@@ -233,8 +375,30 @@ export default function Welcome({
                     <section className="lead-layout" aria-label="À la une">
                         <div className="lead-column">
                             {hero ? (
-                                <article className="lead-story">
-                                    {hero.image ? <img className="lead-image" src={hero.image} alt="" /> : <div className="lead-image lead-image--empty" />}
+                                <article className="lead-story" key={hero.slideId}>
+                                    {hero.slideVideo?.external ? (
+                                        hero.slideVideo.embedUrl ? (
+                                            <iframe
+                                                className="lead-image lead-video"
+                                                src={hero.slideVideo.embedUrl}
+                                                title={`Vidéo : ${hero.title}`}
+                                                allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                referrerPolicy="strict-origin-when-cross-origin"
+                                                allowFullScreen
+                                            />
+                                        ) : (
+                                            <div className="lead-image lead-image--empty" />
+                                        )
+                                    ) : hero.slideVideo ? (
+                                        <video className="lead-image lead-video" controls preload="metadata" playsInline>
+                                            <source src={hero.slideVideo.url} />
+                                            Votre navigateur ne prend pas en charge la lecture vidéo.
+                                        </video>
+                                    ) : hero.slideImage ? (
+                                        <img className="lead-image" src={hero.slideImage} alt="" />
+                                    ) : (
+                                        <div className="lead-image lead-image--empty" />
+                                    )}
                                     <div className="lead-shade" />
                                     <div className="lead-copy">
                                         {hero.categoryUrl ? (
@@ -246,10 +410,10 @@ export default function Welcome({
                                         <p>{hero.excerpt}</p>
                                         <div className="lead-bottom">
                                             <span>{new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(hero.publishedAt))}</span>
-                                            {heroArticles.length > 1 && (
+                                            {heroSlides.length > 1 && (
                                                 <div className="carousel-controls" aria-label="Navigation des articles à la une">
                                                     <button type="button" onClick={() => changeSlide(-1)} aria-label="Article précédent">←</button>
-                                                    <span>{String(activeSlide + 1).padStart(2, '0')} / {String(heroArticles.length).padStart(2, '0')}</span>
+                                                    <span>{String(activeSlide + 1).padStart(2, '0')} / {String(heroSlides.length).padStart(2, '0')}</span>
                                                     <button type="button" onClick={() => changeSlide(1)} aria-label="Article suivant">→</button>
                                                 </div>
                                             )}
@@ -374,10 +538,12 @@ export default function Welcome({
                 <footer className="site-footer">
                     <div className="site-container footer-inner">
                         <a className="footer-brand" href={homeUrl}>LE PATRIOTE</a>
-                        <p>© {new Date().getFullYear()} Le Patriote — Tous droits réservés.</p>
-                        <a className="admin-entry" href={adminUrl} aria-label="Accès administrateur">
-                            <LockIcon /><span>Administration</span>
-                        </a>
+                        <p>
+                            © {new Date().getFullYear()} Le Patriote — Tous droits réservés.
+                            <a className="admin-entry" href={adminUrl} aria-label="Accès administrateur">
+                                <LockIcon /><span>Administration</span>
+                            </a>
+                        </p>
                     </div>
                 </footer>
             </div>

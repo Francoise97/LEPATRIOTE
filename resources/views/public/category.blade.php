@@ -46,6 +46,7 @@
         .article-image { display: block; height: 195px; overflow: hidden; background: linear-gradient(135deg, #dce5ee, #aebed0); }
         .article-image img { width: 100%; height: 100%; object-fit: cover; transition: transform .25s ease; }
         .article-card:hover .article-image img { transform: scale(1.035); }
+        .article-video-label { display: grid; width: 100%; height: 100%; place-items: center; background: linear-gradient(145deg, #315779, #091b31); color: #fff; font-size: 15px; font-weight: 700; }
         .article-content { padding: 16px 18px 19px; }
         .article-category { color: var(--red); font-size: 10px; font-weight: 800; letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
         .article-content h2 { margin: 9px 0; color: var(--navy); font: 700 19px/1.3 Georgia, 'Times New Roman', serif; }
@@ -137,6 +138,10 @@
                         <a class="article-image" href="{{ route('article.show', $article->slug) }}" aria-label="Lire : {{ $article->title }}">
                             @if($article->featured_image)
                                 <img src="{{ asset('storage/' . $article->featured_image) }}" alt="" loading="lazy">
+                            @elseif($galleryImage = $article->media->first(fn ($media) => $media->collection_name === 'gallery'))
+                                <img src="{{ $galleryImage->publicUrl() }}" alt="" loading="lazy">
+                            @elseif($article->media->contains(fn ($media) => $media->collection_name === 'video'))
+                                <span class="article-video-label">▶ Vidéo</span>
                             @endif
                         </a>
                         <div class="article-content">

@@ -46,13 +46,14 @@
         .topbar-site:hover { color: var(--red); }
         .topbar-user { color: #4a5b6d; font-size: 12px; }
         .logout-button { border: 0; padding: 0; color: var(--red); background: none; cursor: pointer; font: inherit; font-size: 12px; }
-        .content { width: min(1200px, 100%); margin: 0 auto; padding: 38px; }
+        .content { width: min(1200px, 100%); min-width: 0; margin: 0 auto; padding: 38px; }
+        .content > table { display: block; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
         @media (max-width: 760px) {
             .sidebar { position: static; width: auto; padding: 16px 18px 12px; }
             .brand { padding: 0 2px 14px; }
             .nav-label, .sidebar-bottom { display: none; }
             .side-nav { display: flex; overflow-x: auto; gap: 6px; padding-bottom: 2px; }
-            .side-nav a { min-height: 39px; flex: none; padding: 0 11px; font-size: 12px; }
+            .side-nav a { min-height: 44px; flex: none; padding: 0 11px; font-size: 12px; }
             .side-nav a.active { box-shadow: inset 0 -2px #e46b78; }
             .admin-main { margin-left: 0; }
             .topbar { min-height: 58px; padding: 0 20px; }
@@ -62,6 +63,9 @@
             .topbar { gap: 10px; }
             .topbar-user { display: none; }
             .side-nav a { gap: 7px; }
+            .content { padding: 22px 14px; }
+            .brand { padding-bottom: 12px; }
+            .brand-caption { font-size: 9px; }
         }
     </style>
     @stack('styles')
@@ -89,6 +93,9 @@
                 <a href="{{ route('admin.categories.index') }}" @class(['active' => request()->routeIs('admin.categories.*')])>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="8" height="7" rx="1.5"/><rect x="13" y="4" width="8" height="7" rx="1.5"/><rect x="3" y="13" width="8" height="7" rx="1.5"/><rect x="13" y="13" width="8" height="7" rx="1.5"/></svg>
                     Catégories
+                </a>
+                <a href="{{ route('admin.preview') }}" @class(['active' => request()->routeIs('admin.preview')])>
+                    <span aria-hidden="true">▣</span> Aperçu des écrans
                 </a>
                 @if(auth()->user()?->isAdmin())
                     <a href="{{ route('admin.sources.index') }}" @class(['active' => request()->routeIs('admin.sources.*')])>

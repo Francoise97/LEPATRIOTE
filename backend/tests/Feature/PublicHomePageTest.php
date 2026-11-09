@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Country;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -55,6 +56,48 @@ class PublicHomePageTest extends TestCase
                 ->has('categories', 1)
                 ->where('categories.0.name', 'Politique')
                 ->missing('heroArticles.1')
+            );
+    }
+
+    public function test_home_carousel_prioritizes_published_articles_with_images(): void
+    {
+        $category = Category::create([
+            'name' => 'Politique',
+            'slug' => 'politique',
+            'is_active' => true,
+        ]);
+        $author = User::factory()->create();
+
+        Article::create([
+            'title' => 'Une actualité récente sans image',
+            'slug' => 'actualite-recente-sans-image',
+            'content' => 'Contenu sans image.',
+            'category_id' => $category->id,
+            'user_id' => $author->id,
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
+        Storage::disk('public')->put('uploads/carousel-feature.jpg', 'test-image');
+
+        Article::create([
+            'title' => 'Une actualité avec image',
+            'slug' => 'actualite-avec-image',
+            'content' => 'Contenu avec image.',
+            'featured_image' => 'uploads/carousel-feature.jpg',
+            'category_id' => $category->id,
+            'user_id' => $author->id,
+            'status' => 'published',
+            'published_at' => now()->subDay(),
+        ]);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Welcome')
+                ->where('heroArticles.0.title', 'Une actualité avec image')
+                ->where('heroArticles.0.image', asset('storage/uploads/carousel-feature.jpg'))
+                ->where('heroArticles.1.title', 'Une actualité récente sans image')
             );
     }
 

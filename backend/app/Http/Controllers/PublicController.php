@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Advertisement;
-use App\Models\BreakingNews;
 use App\Models\Article;
 use App\Models\ArticleLike;
+use App\Models\BreakingNews;
 use App\Models\Category;
 use App\Models\Country;
+use App\Models\Media;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -31,15 +32,30 @@ class PublicController extends Controller
             }));
 
         $heroArticles = $searchArticles()
-            ->with(['category', 'author', 'country'])
+            ->with(['category', 'author', 'country', 'media'])
+            ->where(function ($query) {
+                $query->where('is_featured', true)
+                    ->orWhereNotNull('featured_image')
+                    ->orWhereHas('media', fn ($query) => $query->whereIn('collection_name', ['gallery', 'video']));
+            })
             ->orderByDesc('is_featured')
+            ->orderByRaw("CASE WHEN featured_image IS NULL OR featured_image = '' THEN 1 ELSE 0 END")
             ->latest()
-            ->take(3)
             ->get();
+        if ($heroArticles->count() < 3) {
+            $heroArticles = $heroArticles->concat(
+                $searchArticles()
+                    ->with(['category', 'author', 'country', 'media'])
+                    ->whereNotIn('id', $heroArticles->modelKeys())
+                    ->latest()
+                    ->take(3 - $heroArticles->count())
+                    ->get()
+            );
+        }
         $heroArticleIds = $heroArticles->modelKeys();
 
         $latestArticles = $searchArticles()
-            ->with(['category', 'country'])
+            ->with(['category', 'country', 'media'])
             ->when($search === '' && $heroArticleIds !== [], fn ($query) => $query->whereNotIn('id', $heroArticleIds))
             ->latest()
             ->take(6)
@@ -48,7 +64,7 @@ class PublicController extends Controller
         $relatedArticles = $heroArticleIds === []
             ? collect()
             : $searchArticles()
-                ->with(['category', 'country'])
+                ->with(['category', 'country', 'media'])
                 ->where('category_id', $heroArticles->first()->category_id)
                 ->whereNotIn('id', $heroArticleIds)
                 ->orderByDesc('views_count')
@@ -59,7 +75,7 @@ class PublicController extends Controller
         if ($relatedArticles->count() < 3) {
             $relatedArticles = $relatedArticles->concat(
                 $searchArticles()
-                    ->with(['category', 'country'])
+                    ->with(['category', 'country', 'media'])
                     ->when($heroArticleIds !== [], fn ($query) => $query->whereNotIn('id', $heroArticleIds))
                     ->whereNotIn('id', $relatedArticles->pluck('id')->all())
                     ->orderByDesc('views_count')
@@ -142,12 +158,13 @@ class PublicController extends Controller
                 'category',
                 'author',
                 'tags',
+                'media',
                 'comments' => fn ($query) => $query->approved()->latest(),
             ])
             ->firstOrFail();
 
         $relatedArticles = $this->publishedArticles()
-            ->with('category')
+            ->with(['category', 'media'])
             ->where('category_id', $article->category_id)
             ->whereKeyNot($article->getKey())
             ->latest()
@@ -175,7 +192,7 @@ class PublicController extends Controller
     {
         $category = Category::active()->where('slug', $slug)->firstOrFail();
         $articles = $this->publishedArticles()
-            ->with(['category', 'author'])
+            ->with(['category', 'author', 'media'])
             ->where('category_id', $category->id)
             ->latest()
             ->paginate(10);
@@ -200,12 +217,31 @@ class PublicController extends Controller
 
     private function articleForFrontend(Article $article, array $likedArticleIds = []): array
     {
+        $images = collect([
+            $article->featured_image ? asset('storage/'.$article->featured_image) : null,
+        ])->concat(
+            $article->media
+                ->where('collection_name', 'gallery')
+                ->map(fn (Media $media) => $media->publicUrl())
+        )->filter()->values();
+        $videos = $article->media
+            ->where('collection_name', 'video')
+            ->map(fn (Media $media) => [
+                'url' => $media->publicUrl(),
+                'embedUrl' => $media->videoEmbedUrl(),
+                'external' => $media->file_type === 'video/external',
+            ])
+            ->values();
+
         return [
             'id' => $article->id,
             'title' => $article->title,
             'slug' => $article->slug,
             'excerpt' => $article->excerpt ?: Str::limit(strip_tags($article->content), 180),
-            'image' => $article->featured_image ? asset('storage/'.$article->featured_image) : null,
+            'image' => $images->first(),
+            'images' => $images,
+            'video' => $videos->first(),
+            'videos' => $videos,
             'category' => $article->category?->name ?? 'Actualité',
             'categoryUrl' => $article->category ? route('category.show', $article->category->slug) : null,
             'country' => $article->country?->name,

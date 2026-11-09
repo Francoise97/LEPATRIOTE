@@ -84,8 +84,10 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .search-summary a { margin-left: auto; color: var(--red); font-size: 12px; font-weight: 700; text-decoration: none; }
 .lead-layout { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(270px, .82fr); gap: 27px; }
 .lead-column { min-width: 0; }
-.lead-story { position: relative; display: flex; min-height: 440px; align-items: flex-end; overflow: hidden; background: linear-gradient(135deg, #315c83, var(--navy-deep)); color: #fff; isolation: isolate; }
+.lead-story { position: relative; display: flex; min-height: 440px; align-items: flex-end; overflow: hidden; background: linear-gradient(135deg, #315c83, var(--navy-deep)); color: #fff; isolation: isolate; animation: carousel-slide-in .5s ease both; }
+@keyframes carousel-slide-in { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
 .lead-image { position: absolute; z-index: -2; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.lead-video { border: 0; background: #000; }
 .lead-image--empty { background: radial-gradient(ellipse at 75% 30%, #55759a 0, transparent 34%), linear-gradient(135deg, #294c70, var(--navy-deep)); }
 .lead-shade { position: absolute; z-index: -1; inset: 20% 0 0; background: linear-gradient(180deg, transparent, #061528ed); }
 .lead-copy { width: 100%; padding: 31px 34px 25px; }
@@ -142,6 +144,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .article-image img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s ease; }
 .article-card:hover .article-image img { transform: scale(1.035); }
 .article-image--empty { display: grid; place-items: center; background: linear-gradient(145deg, #315779, var(--navy-deep)); color: #ffffff99; font-family: var(--serif); font-size: 24px; font-weight: 700; letter-spacing: .06em; }
+.article-video-label { display: grid; width: 100%; height: 100%; place-items: center; background: linear-gradient(145deg, #315779, var(--navy-deep)); color: #fff; font-size: 15px; font-weight: 700; }
 .image-category { position: absolute; bottom: 12px; left: 13px; padding: 6px 8px; background: var(--red); color: #fff; font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .article-copy { padding: 17px 18px 16px; }
 .article-category { color: var(--red); font-size: 9px; font-weight: 800; letter-spacing: .1em; text-decoration: none; text-transform: uppercase; }
@@ -164,6 +167,28 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .advertisement-strip a { position: relative; display: block; min-height: 100px; overflow: hidden; background: #e7ebf0; }
 .advertisement-strip img { display: block; width: 100%; max-height: 180px; object-fit: cover; }
 .ad-label { position: absolute; z-index: 1; top: 8px; right: 8px; padding: 4px 6px; background: #091c32b8; color: #fff; font-size: 8px; font-weight: 700; letter-spacing: .08em; }
+.ad-modal-backdrop { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; padding: 20px; overflow-y: auto; background: #071321d9; animation: ad-backdrop-in .25s ease both; }
+.ad-modal { position: relative; width: min(760px, 100%); max-height: calc(100vh - 40px); max-height: calc(100dvh - 40px); overflow: auto; overscroll-behavior: contain; border-radius: 12px; background: #fff; box-shadow: 0 28px 90px #0008; animation: ad-modal-in .35s cubic-bezier(.2,.8,.2,1) both; }
+.ad-modal-topline { position: absolute; z-index: 2; top: 0; right: 0; left: 0; display: flex; min-height: 48px; align-items: flex-start; justify-content: space-between; padding: 12px; pointer-events: none; }
+.ad-modal-badge { padding: 6px 9px; border-radius: 3px; background: #091c32d9; color: #fff; font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.ad-modal-close { display: grid; width: 38px; height: 38px; place-items: center; border: 0; border-radius: 50%; background: #091c32e8; color: white; cursor: pointer; pointer-events: auto; }
+.ad-modal-close:hover { background: var(--red); }
+.ad-modal-close svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-width: 2; }
+.ad-modal-countdown { margin-left: auto; padding: 7px 10px; border-radius: 4px; background: #091c32d9; color: #fff; font-size: 10px; }
+.ad-modal-link { display: block; aspect-ratio: 16 / 9; overflow: hidden; background: #e7edf3; }
+.ad-modal-image { display: block; width: 100%; height: 100%; object-fit: contain; animation: ad-slide-in .4s ease both; }
+.ad-modal-footer { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 16px 20px; }
+.ad-modal-footer h2 { margin: 0; color: var(--navy); font-family: var(--serif); font-size: 17px; }
+.ad-modal-footer p { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
+.ad-modal-controls { display: flex; flex: none; align-items: center; gap: 9px; color: var(--muted); font-size: 10px; }
+.ad-modal-controls button { display: grid; width: 31px; height: 31px; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: #fff; color: var(--navy); cursor: pointer; }
+.ad-modal-controls button:hover { border-color: var(--red); color: var(--red); }
+.ad-modal-progress { position: absolute; right: 0; bottom: 0; left: 0; height: 3px; overflow: hidden; background: #dce2e9; }
+.ad-modal-progress::after { display: block; width: 100%; height: 100%; transform: translateX(-100%); background: var(--red); content: ''; animation: ad-close-progress 5s linear forwards; }
+@keyframes ad-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ad-modal-in { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes ad-slide-in { from { opacity: .35; transform: translateX(14px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes ad-close-progress { to { transform: translateX(0); } }
 .footer-ad-strip { display: flex; justify-content: center; gap: 14px; padding: 24px; background: #edf0f3; }
 .footer-ad-strip a { position: relative; display: block; max-width: 720px; overflow: hidden; background: #e7ebf0; }
 .footer-ad-strip img { display: block; width: 100%; max-height: 160px; object-fit: cover; }
@@ -186,7 +211,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .site-footer { background: var(--navy-deep); color: #b7c1ce; }
 .footer-inner { display: flex; min-height: 82px; align-items: center; justify-content: space-between; gap: 20px; }
 .footer-brand { color: #fff; font-family: var(--serif); font-size: 15px; font-weight: 800; letter-spacing: .05em; text-decoration: none; }
-.footer-inner p { margin: 0; font-size: 10px; }
+.footer-inner p { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 10px; }
 .admin-entry { display: inline-flex; align-items: center; gap: 7px; color: #8391a1; font-size: 10px; text-decoration: none; }
 .admin-entry svg { width: 15px; height: 15px; }
 .admin-entry span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
@@ -261,6 +286,12 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
     .lead-copy { padding: 21px 17px 17px; }
     .lead-copy h1 { font-size: 27px; }
     .lead-copy > p { font-size: 12px; }
+    .ad-modal-backdrop { padding: 12px; }
+    .ad-modal { border-radius: 9px; }
+    .ad-modal-link { aspect-ratio: 4 / 3; }
+    .ad-modal-footer { align-items: flex-start; padding: 13px; }
+    .ad-modal-footer h2 { font-size: 14px; }
+    .ad-modal-footer p { max-width: 205px; font-size: 10px; }
     .related-list { grid-template-columns: 1fr; gap: 0; }
     .related-list li { grid-template-columns: 30px 1fr; gap: 10px; padding: 14px 0; border-bottom: 1px solid var(--line); }
     .related-list li:last-child { padding-bottom: 0; border-bottom: 0; }
@@ -272,6 +303,22 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
     .newsletter-form { grid-column: 1; }
     .newsletter-form button { padding: 0 9px; }
     .footer-inner p { font-size: 9px; }
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .newsletter-button,
+    .carousel-controls button,
+    .ad-modal-close,
+    .ad-modal-controls button,
+    .like-button,
+    .newsletter-form button {
+        min-height: 44px;
+    }
+
+    .carousel-controls button,
+    .ad-modal-controls button {
+        min-width: 44px;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

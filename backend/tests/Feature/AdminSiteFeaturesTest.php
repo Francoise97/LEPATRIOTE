@@ -139,6 +139,21 @@ class AdminSiteFeaturesTest extends TestCase
             ->assertSee('Texte du badge fixe');
     }
 
+    public function test_an_authenticated_editor_can_open_the_live_screen_preview(): void
+    {
+        $editor = User::factory()->create(['role' => 'editor']);
+
+        $this->actingAs($editor)
+            ->get(route('admin.preview'))
+            ->assertOk()
+            ->assertSee('Aperçu des écrans')
+            ->assertSee('data-preview-mode="mobile"', false)
+            ->assertSee('data-preview-mode="tablet"', false)
+            ->assertSee('data-preview-mode="desktop"', false)
+            ->assertSee('title="Aperçu direct du site Le Patriote"', false)
+            ->assertSee(route('home'), false);
+    }
+
     public function test_news_source_import_is_blocked_until_the_source_is_verified(): void
     {
         $administrator = User::factory()->create(['role' => 'admin']);

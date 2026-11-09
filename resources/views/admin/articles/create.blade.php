@@ -3,8 +3,18 @@
 @section('content')
 <h1>Créer un article</h1>
 
-<form method="POST" action="/admin/articles" enctype="multipart/form-data" style="background: white; padding: 24px; border-radius: 8px;">
+<form method="POST" action="{{ route('admin.articles.store') }}" enctype="multipart/form-data" style="background: white; padding: 24px; border-radius: 8px;">
     @csrf
+    @if($errors->any())
+        <div role="alert" style="margin-bottom:20px;padding:14px;background:#fef2f2;color:#991b1b;border:1px solid #fecaca;">
+            <strong>Vérifiez les informations suivantes :</strong>
+            <ul style="margin:8px 0 0;padding-left:20px;">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
     
     <div style="margin-bottom: 16px;">
         <label style="display: block; margin-bottom: 8px; font-weight: 600;">Titre</label>
@@ -32,8 +42,33 @@
     </div>
 
     <div style="margin-bottom: 16px;">
-        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Image principale</label>
-        <input type="file" name="featured_image" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+        <label for="featured_image" style="display: block; margin-bottom: 8px; font-weight: 600;">Image principale</label>
+        <input id="featured_image" type="file" name="featured_image" accept="image/jpeg,image/png,image/webp,image/gif" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+        <small>JPG, PNG, WebP ou GIF — 8 Mo maximum.</small>
+    </div>
+
+    <div style="margin-bottom: 16px;">
+        <label for="gallery_images" style="display: block; margin-bottom: 8px; font-weight: 600;">Galerie d’images</label>
+        <input id="gallery_images" type="file" name="gallery_images[]" accept="image/jpeg,image/png,image/webp,image/gif" multiple style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+        <small>Jusqu’à 10 images supplémentaires, 8 Mo chacune.</small>
+    </div>
+
+    <div style="margin-bottom: 16px;">
+        <label for="video_files" style="display: block; margin-bottom: 8px; font-weight: 600;">Vidéos à téléverser</label>
+        <input id="video_files" type="file" name="video_files[]" accept="video/mp4,video/webm,video/quicktime,video/ogg" multiple style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+        <small>MP4, WebM, MOV ou OGG — jusqu’à 3 vidéos de 100 Mo chacune.</small>
+    </div>
+
+    <div style="margin-bottom: 16px;">
+        <label for="video_urls" style="display: block; margin-bottom: 8px; font-weight: 600;">Liens YouTube ou Vimeo</label>
+        <input id="video_urls" type="url" name="video_urls[]" placeholder="https://www.youtube.com/watch?v=…" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+        <small>Ajoutez d’autres liens après l’enregistrement de l’article.</small>
+    </div>
+
+    <div style="margin-bottom: 16px;">
+        <label for="documents" style="display: block; margin-bottom: 8px; font-weight: 600;">Documents PDF</label>
+        <input id="documents" type="file" name="documents[]" accept="application/pdf" multiple style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+        <small>Jusqu’à 10 documents PDF de 10 Mo chacun.</small>
     </div>
 
     <div style="margin-bottom: 16px;">

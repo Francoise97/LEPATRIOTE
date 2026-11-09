@@ -61,6 +61,31 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 
 Les flux de Togo First, de Republic of Togo et du Monde sont vérifiés toutes les heures. Les nouveaux éléments reconnus sont importés en brouillon pour validation par la rédaction. Les éléments déjà importés ne sont pas remplacés ni mis à jour automatiquement, et le texte disponible dépend du contenu fourni par chaque flux.
 
+## Administration éditoriale
+
+Après déploiement, exécuter les migrations et ajouter les pays de départ :
+
+```bash
+php artisan migrate
+php artisan db:seed --class=CountrySeeder
+```
+
+Créer d’abord un compte de connexion, puis lui accorder le rôle administrateur depuis le terminal du backend :
+
+```bash
+php artisan admin:promote admin@example.com
+```
+
+L’accès à `/admin` est réservé aux comptes éditeur et administrateur. L’administration permet de modifier le logo, les couleurs et la typographie du slogan, de gérer les publicités et les sources RSS, et d’éditer les articles avec leur pays et leur rubrique. Une source RSS doit être vérifiée et active avant import ; ses articles sont créés en brouillon pour contrôle éditorial. La section « Fil info » permet aux administrateurs de modifier le libellé du badge, d’ajouter, modifier, activer, ordonner ou supprimer les messages du bandeau de la page d’accueil. Chaque message peut contenir un lien facultatif. Les mentions J’aime sont limitées à une réaction réversible par session et par article.
+
+Les visuels envoyés par l’administration sont stockés sur le disque public Laravel. Pour les servir, créer le lien de stockage une fois :
+
+```bash
+php artisan storage:link
+```
+
+Les articles acceptent une galerie de 10 images, jusqu’à 3 vidéos de 100 Mo chacune, des liens YouTube/Vimeo et jusqu’à 10 PDF. Le fichier `public/.user.ini` règle les limites pour les serveurs PHP-FPM/CGI. Avec `php artisan serve` sous Windows, PHP CLI n’applique pas ce fichier : régler les mêmes valeurs dans le `php.ini` indiqué par `php --ini`, puis redémarrer le serveur. Le serveur web ou proxy doit également autoriser des requêtes d’au moins 320 Mo.
+
 Pour vérifier la planification :
 
 ```bash

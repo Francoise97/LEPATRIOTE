@@ -16,14 +16,17 @@ class Setting extends Model
         'group',
     ];
 
-    protected $casts = [
-        'value' => 'array',
-    ];
-
     public static function get($key, $default = null)
     {
         $setting = self::where('key', $key)->first();
-        return $setting ? $setting->value : $default;
+
+        if (! $setting) {
+            return $default;
+        }
+
+        return $setting->type === 'json'
+            ? json_decode($setting->value, true, flags: JSON_THROW_ON_ERROR)
+            : $setting->value;
     }
 
     public static function set($key, $value, $type = 'string', $group = 'general')

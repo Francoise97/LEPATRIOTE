@@ -14,7 +14,7 @@ class AdminDashboardTest extends TestCase
 
     public function test_dashboard_displays_editorial_statistics_and_recent_articles(): void
     {
-        $user = User::factory()->create(['name' => 'Aminata']);
+        $user = User::factory()->create(['name' => 'Aminata', 'role' => 'editor']);
         $category = Category::create([
             'name' => 'Politique',
             'slug' => 'politique',
